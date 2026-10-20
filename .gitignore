@@ -46,3 +46,6 @@ next-env.d.ts
 CLAUDE.md
 CLAUDE.local.md
 AGENTS.md
+
+# Supabase CLI local state
+supabase/.temp/
