@@ -1,0 +1,210 @@
+// All UI text in one place, so it is easy to review.
+// (Restriction names live in lib/restrictions.ts.)
+
+export const s = {
+  appName: "WTFood",
+  tagline: "What can I eat here?",
+
+  common: {
+    working: "One moment…",
+    errorGeneric: "Something went wrong. Please try again.",
+    back: "Back",
+    save: "Save",
+    cancel: "Cancel",
+    emailLabel: "Email",
+    emailPlaceholder: "you@example.com",
+    passwordLabel: "Password",
+    passwordHint: "At least 8 characters",
+    comingSoon: "Coming soon",
+  },
+
+  welcome: {
+    slides: [
+      {
+        emoji: "📸",
+        title: "Snap the menu",
+        text: "Take a photo of a Chinese menu, an ordering kiosk or a food label.",
+      },
+      {
+        emoji: "🔍",
+        title: "We read every dish",
+        text: "Each item is translated, with the ingredients you can't see – lard, shrimp paste, oyster sauce and more.",
+      },
+      {
+        emoji: "🚦",
+        title: "OK, Check or Avoid",
+        text: "Every dish is checked against your dietary restrictions. Unsure? Show the staff a question in Chinese.",
+      },
+    ],
+    next: "Next",
+    skip: "Skip",
+    createAccount: "Create account",
+    haveAccount: "I already have an account",
+  },
+
+  signup: {
+    title: "Create your account",
+    intro: "No real name needed. Your email is only used to log in.",
+    nicknameLabel: "Nickname (optional)",
+    nicknamePlaceholder: "What should we call you?",
+    submit: "Create account",
+    haveAccount: "Already have an account? Log in",
+    emailTaken: "There is already an account with this email. Try logging in.",
+    weakPassword: "Please choose a password with at least 8 characters.",
+    confirmEmail: "Almost done! Open the link in the email we just sent you to finish signing up.",
+  },
+
+  login: {
+    title: "Welcome back",
+    submit: "Log in",
+    forgot: "Forgot password?",
+    noAccount: "New here? Create an account",
+    wrongCredentials: "Email or password is wrong.",
+    linkError: "This link has expired or was already used. Please request a new one.",
+    sessionEnded: "Your session has ended. Please log in again.",
+  },
+
+  forgot: {
+    title: "Forgot your password?",
+    intro: "Enter your email and we'll send you a link to choose a new password.",
+    send: "Send link",
+    sent: "If there is an account with this email, a link is on its way. Check your inbox and spam folder.",
+    tooMany: "Too many requests. Please wait a few minutes and try again.",
+    backToLogin: "Back to log in",
+  },
+
+  reset: {
+    title: "Choose a new password",
+    intro: "You're almost back in.",
+    newPassword: "New password",
+    repeat: "Repeat password",
+    mismatch: "The two passwords don't match.",
+    sameAsOld: "Please choose a password that is different from your old one.",
+    submit: "Save password",
+  },
+
+  consent: {
+    title: "Your data, your choice",
+    text: "Your dietary restrictions are health-related data. We store them only to check menus for you. You can delete them anytime.",
+    points: [
+      "Stored in our database (Supabase, EU) and linked only to your email.",
+      "Never shared, never sold, never used for ads.",
+      "Menu photos are checked and then discarded – we never store them.",
+    ],
+    checkbox: "I agree that WTFood stores my dietary restrictions for this purpose.",
+    submit: "Continue",
+    privacyLink: "Read the privacy notice",
+    logout: "Not now – log out",
+  },
+
+  restrictions: {
+    title: "What can't you eat?",
+    intro: "Choose everything that applies. You can change this anytime in your profile.",
+    minOne: "Please choose at least one.",
+    selected: (n: number) => (n === 1 ? "1 selected" : `${n} selected`),
+    submit: "Done",
+    editTitle: "My restrictions",
+  },
+
+  tabs: {
+    home: "Home",
+    scan: "Scan",
+    lexicon: "Lexicon",
+    profile: "Profile",
+  },
+
+  home: {
+    greeting: (name: string | null) => (name ? `Hi ${name}!` : "Hi there!"),
+    headline: "What can I eat here?",
+    scanTitle: "Scan a menu",
+    scanText: "Photo of a menu, kiosk or food label",
+    quickActions: {
+      scanMenu: "Scan menu",
+      scanLabel: "Scan label",
+      lexicon: "Dish lexicon",
+      askStaff: "Ask staff",
+      restrictions: "My restrictions",
+    },
+    checkingFor: "Checking for",
+    tipTitle: "Tip",
+    tipText: "Soy sauce usually contains wheat, and many \"vegetable\" dishes are cooked with oyster sauce or lard. When in doubt, ask the staff.",
+  },
+
+  scan: {
+    title: "Scan",
+    text: "Menu scanning arrives in one of the next updates.",
+  },
+
+  lexicon: {
+    title: "Dish lexicon",
+    text: "Look up common Hong Kong dishes and what's in them. Arriving in one of the next updates.",
+  },
+
+  profile: {
+    title: "Profile",
+    account: "Account",
+    nickname: "Nickname",
+    noNickname: "Not set",
+    email: "Email",
+    restrictions: "My restrictions",
+    edit: "Edit",
+    consentGiven: (date: string) => `Consent to store restrictions given on ${date}.`,
+    privacy: "Privacy notice",
+    logout: "Log out",
+    deleteTitle: "Delete account",
+    deleteText: "This permanently removes your account and all your data, including your dietary restrictions. This cannot be undone.",
+    deleteButton: "Delete my account",
+    deleteConfirm: "Yes, delete everything",
+    deleted: "Your account and all your data have been deleted.",
+    nicknameSaved: "Saved",
+  },
+
+  privacy: {
+    title: "Privacy notice",
+    updated: "Last updated: 21 October 2026",
+    back: "Back",
+    sections: [
+      {
+        title: "Who we are",
+        text: [
+          "WTFood is a student project for the course GE2340 at City University of Hong Kong. It helps you check Chinese menus and food labels against your dietary restrictions.",
+        ],
+      },
+      {
+        title: "What we store",
+        text: [
+          "Your email address and password (the password only in encrypted form), so you can log in.",
+          "Your nickname, if you choose one.",
+          "Your dietary restrictions and the date you agreed to us storing them. These are health-related data, so we only store them with your explicit consent.",
+          "Anonymous usage numbers (for example how many items a scan found and how long it took), without your account or your photo.",
+        ],
+      },
+      {
+        title: "What we don't store",
+        text: [
+          "Your menu and label photos. They are shrunk on your phone (which also removes location and camera data), checked, and then discarded.",
+          "No tracking, no ads, no analytics cookies. We only use the cookie that keeps you logged in.",
+        ],
+      },
+      {
+        title: "Where your data is",
+        text: [
+          "Accounts and restrictions are stored with Supabase in Frankfurt (EU). The app is hosted by Vercel.",
+          "To read a photo, it is sent to an AI service (Anthropic) and a text-recognition service on our own server. They process it only to answer that one request.",
+        ],
+      },
+      {
+        title: "Your rights",
+        text: [
+          "Under Hong Kong's Personal Data (Privacy) Ordinance you can see and correct your data at any time: everything we store about you is shown in your profile.",
+          "You can change your restrictions or delete your account anytime (Profile → Delete account). This removes all your data immediately.",
+          "Your data is kept until you delete your account, at the latest until the end of the project.",
+        ],
+      },
+      {
+        title: "Contact",
+        text: ["Questions or requests: wtfood@maximilian-schiller.com"],
+      },
+    ],
+  },
+};
