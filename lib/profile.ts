@@ -36,7 +36,7 @@ export async function getCurrentProfile(): Promise<CurrentProfile> {
 }
 
 // Where a user still has to go before using the app, if anywhere.
-// (Google users have no username yet after their first login.)
+// (Older accounts may not have a username yet.)
 export function onboardingStep(profile: CurrentProfile): string | null {
   if (!profile.username) return "/username";
   if (!profile.healthConsentAt) return "/consent";

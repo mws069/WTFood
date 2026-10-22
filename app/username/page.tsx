@@ -5,7 +5,7 @@ import { UsernameForm } from "@/components/username-form";
 import { getCurrentProfile } from "@/lib/profile";
 import { s } from "@/lib/strings";
 
-// Onboarding step for accounts without a username (e.g. after Google login).
+// Onboarding step for accounts without a username (e.g. older accounts).
 export default async function UsernamePage() {
   const profile = await getCurrentProfile();
   if (profile.username) redirect("/");

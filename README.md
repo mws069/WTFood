@@ -31,7 +31,7 @@ Live: https://wtfood.maximilian-schiller.com
 | `supabase/migrations/` | Database tables and access rules (Row Level Security) |
 | `supabase/templates/` | Email templates to paste into the Supabase dashboard |
 
-Logged-out visitors are sent to `/welcome` by `proxy.ts`. Users log in with username or email + password, or with Google. Before they see the tabs, they must have a username (Google users pick one after their first login), give consent and pick at least one restriction.
+Logged-out visitors are sent to `/welcome` by `proxy.ts`. Users log in with username or email + password. Before they see the tabs, they must have a username (older accounts pick one on their next login), give consent and pick at least one restriction.
 
 ## Database
 

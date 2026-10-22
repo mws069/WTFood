@@ -66,18 +66,11 @@ export const s = {
     wrongCredentials: "Username, email or password is wrong.",
     linkError: "This link has expired or was already used. Please request a new one.",
     sessionEnded: "Your session has ended. Please log in again.",
-    oauthError: "Logging in with Google didn't work. Please try again.",
-  },
-
-  oauth: {
-    or: "or",
-    google: "Continue with Google",
-    apple: "Continue with Apple",
   },
 
   username: {
     title: "Choose a username",
-    intro: "You can use it to log in instead of your email. Others in the app only ever see your username.",
+    intro: "You can use it to log in instead of your email.",
     submit: "Continue",
     saved: "Saved",
   },
@@ -283,7 +276,6 @@ export const s = {
         title: "What we store",
         text: [
           "Your email address and password (the password only in encrypted form), so you can log in.",
-          "If you log in with Google: Google tells us your email address and your Google account name. We only use the email address.",
           "Your username.",
           "Your dietary restrictions and the date you agreed to us storing them. These are health-related data, so we only store them with your explicit consent.",
           "Anonymous usage numbers (for example how many items a scan found and how long it took), without your account or your photo.",

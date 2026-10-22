@@ -18,7 +18,6 @@ Updated after every milestone. Newest entry on top.
 - **New look in super-app style:** coloured icon tiles instead of emojis everywhere (icons from the open-source set lucide, ISC license). Home: blue header with greeting, search field and four white quick actions, then the Scan card, "My restrictions" as an icon grid and a tip. Profile: grouped settings list; nickname, email and delete account moved to Profile → Account. Lexicon: a category tile per dish.
 
 - **Username instead of nickname:** every account has a unique username (3–20 letters, numbers, _ or .). Log in with **username or email**. Change it under Profile → Account. Existing nicknames that fit the rules were kept ("test", "admin"); accounts without a valid one are asked to pick a username.
-- **Continue with Google** on the welcome screen, login and sign-up (works once Google is set up in Supabase, see below). New Google users pick a username, then give consent and choose restrictions. **Apple** is built in but switched off (needs an Apple Developer account; turn on with `NEXT_PUBLIC_AUTH_PROVIDERS=google,apple`).
 
 **How to test**
 - Lexicon tab: normal users see only verified dishes, so it's empty until the team verifies dishes. Team members see all drafts.
@@ -29,7 +28,7 @@ Updated after every milestone. Newest entry on top.
 - Rule engine tests (`npm test`): 101/101 pass.
 
 **Decisions**
-- Login with Google (and later Apple) added at Max's request, although the brief asks for anonymous accounts: we only use the email address from Google, never the name or photo. The privacy notice says so. Max updates the brief in Notion.
+- No login with Google or Apple (tried, then dropped by Max): accounts stay email/username + password, as in the brief.
 - The nickname became a required username (column `profiles.username`).
 - Ingredients live in code (`lib/ingredients.ts`) and are copied into the database by `npm run db:seed`, so the rule engine and the database never disagree.
 - Team role is set with `npm run db:team -- add <email>` (instead of an env-var allowlist).
