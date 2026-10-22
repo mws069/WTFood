@@ -1,0 +1,23 @@
+<!-- WTFood password reset email. Paste into Supabase: Authentication → Emails → Templates → Reset password.
+     The link goes to our own domain (not supabase.co), which helps against spam filters
+     and works in any browser. -->
+<div style="margin:0;padding:24px 16px;background:#f5f6f8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1f1f1f;">
+  <div style="max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;padding:32px 28px;">
+    <p style="margin:0 0 24px;font-size:20px;font-weight:800;color:#1677ff;">WTFood</p>
+    <h1 style="margin:0 0 12px;font-size:22px;line-height:1.3;">Choose a new password</h1>
+    <p style="margin:0 0 24px;font-size:16px;line-height:1.5;">
+      Someone (hopefully you) asked to reset the password for your WTFood account {{ .Email }}.
+      Tap the button to choose a new one.
+    </p>
+    <p style="margin:0 0 24px;">
+      <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&amp;type=recovery&amp;next=/reset-password"
+         style="display:inline-block;background:#1677ff;color:#ffffff;text-decoration:none;font-weight:600;font-size:16px;padding:14px 24px;border-radius:999px;">
+        Choose a new password
+      </a>
+    </p>
+    <p style="margin:0 0 8px;font-size:14px;line-height:1.5;color:#595959;">
+      The link works for 1 hour. If you didn’t ask for this, you can ignore this email. Your password stays the same.
+    </p>
+    <p style="margin:24px 0 0;font-size:14px;color:#595959;">Your WTFood team 🥢</p>
+  </div>
+</div>

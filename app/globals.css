@@ -1,26 +1,86 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Design tokens ("Alipay × Neotaste"). Use as bg-brand, text-muted, etc. */
+@theme {
+  --color-brand: #1677ff;
+  --color-brand-dark: #0958d9;
+  --color-brand-light: #e8f1ff;
+  --color-page: #f5f6f8;
+  --color-ink: #1f1f1f;
+  --color-muted: #8c8c8c;
+  --color-line: #e5e6eb;
+  --color-ok: #00b578;
+  --color-check: #ff8f1f;
+  --color-avoid: #ff3141;
+
+  --radius-card: 16px;
+
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-page);
+  color: var(--color-ink);
+}
+
+/* Visible focus ring for keyboard users. */
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+@layer components {
+  .card {
+    @apply rounded-card bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)];
+  }
+
+  .btn-primary {
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-brand px-6 text-base font-semibold text-white transition active:scale-[0.98] disabled:opacity-50;
+  }
+
+  .btn-secondary {
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-brand-light px-6 text-base font-semibold text-brand transition active:scale-[0.98] disabled:opacity-50;
+  }
+
+  .btn-danger {
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-avoid px-6 text-base font-semibold text-white transition active:scale-[0.98] disabled:opacity-50;
+  }
+
+  .input {
+    @apply h-12 w-full rounded-2xl border border-line bg-white px-4 text-base outline-none focus:border-brand focus:ring-2 focus:ring-brand-light;
+  }
+
+  .label {
+    @apply text-sm font-medium text-ink;
+  }
+
+  .link {
+    @apply font-medium text-brand underline-offset-2 hover:underline;
+  }
+}
+
+/* Small, quick CSS-only animations. */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.25s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-up {
+    animation: none;
+  }
 }

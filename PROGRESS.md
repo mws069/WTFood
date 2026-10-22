@@ -2,6 +2,40 @@
 
 Updated after every milestone. Newest entry on top.
 
+## 2026-10-21 · Milestone 2: App shell
+
+**What works now**
+- **Welcome:** 3 intro slides (Snap the menu · We read every dish · OK, Check or Avoid) with Skip, then "Create account" or "I already have an account". Logged-out visitors always land here.
+- **Sign-up** with email + password (min. 8 characters) and an optional nickname. No real name needed.
+- **Login**, **Forgot password** and **Log out**. After sending the reset link the form is replaced by a "Check your inbox" message with a 1-minute countdown, then "Resend link" (or "Use a different email").
+- **Consent screen** after sign-up: explains that restrictions are health data, unticked checkbox, nothing is stored before consent. The database also refuses restrictions without a consent date.
+- **Restrictions picker:** 15 restrictions as chips in 3 groups (Allergies & intolerances · Diets · Religious & other), at least one required. Editable later from Home or Profile.
+- **Home:** blue header with greeting, big Scan card, 5 round quick actions, "Checking for" chips, tip card.
+- **Tab bar:** Home · Scan (centre) · Lexicon · Profile. Scan and Lexicon are placeholders for now.
+- **Profile:** restrictions with consent date, nickname (editable), email, privacy notice, log out, **delete account** (two steps; removes the account and all data immediately).
+- **Privacy notice** at `/privacy` (public): what is stored, what not, where, PDPO rights, contact wtfood@maximilian-schiller.com.
+- **PWA:** app name, blue app icon (bowl with chopsticks, placeholder), installable on iPhone and Android.
+- Design tokens from the brief (blue #1677FF, verdict colours, 16 px cards, pill buttons, 48 px tap targets). Font: **Manrope** (SIL Open Font License), self-hosted as small Latin-only files in `app/fonts/`.
+
+**How to test**
+- Open the preview link on your phone → slides → Create account → consent → pick restrictions → Home.
+- Profile → change nickname → back on Home the greeting changes.
+- Log out, then "Forgot password?" with your email → open the email → choose a new password.
+- Profile → Delete account → you land on the welcome screen with a confirmation.
+
+**Checked**
+- Access rules as a normal user: sees only own profile; cannot make itself "team", cannot add or delete profiles, cannot drop consent while restrictions are stored. Logged-out visitors see nothing.
+
+**Decisions**
+- `profiles` table created now (brief: milestone 3) because consent, restrictions and delete account need it.
+- Next.js "Cache Components" switched off: classic server rendering is simpler for login-protected pages.
+- Email confirmation on sign-up is off during the test phase.
+
+**Known issues / open**
+- The app icon is a placeholder until we have a logo.
+- "Ask staff" on Home opens the Scan placeholder; the real Ask-staff card comes in milestone 6.
+- Secondary grey text (#8C8C8C from the brief) is slightly below the recommended contrast for small text; to be reviewed in milestone 9.
+
 ## 2026-10-21 · Milestone 1: Tools and accounts
 
 **What works now**
