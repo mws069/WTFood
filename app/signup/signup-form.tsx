@@ -22,7 +22,7 @@ export function SignupForm() {
     });
     if (!parsed.success) {
       const field = parsed.error.issues[0]?.path[0];
-      return setMessage({ kind: "error", text: field === "password" ? s.signup.weakPassword : s.common.errorGeneric });
+      return setMessage({ kind: "error", text: field === "password" ? s.signup.weakPassword : s.signup.invalidEmail });
     }
 
     setBusy(true);
@@ -40,7 +40,9 @@ export function SignupForm() {
     if (error) {
       setBusy(false);
       if (error.code === "user_already_exists") return setMessage({ kind: "error", text: s.signup.emailTaken });
+      if (error.code === "email_address_invalid") return setMessage({ kind: "error", text: s.signup.invalidEmail });
       if (error.code === "weak_password") return setMessage({ kind: "error", text: s.signup.weakPassword });
+      if (error.status === 429) return setMessage({ kind: "error", text: s.signup.tooMany });
       return setMessage({ kind: "error", text: s.common.errorGeneric });
     }
 

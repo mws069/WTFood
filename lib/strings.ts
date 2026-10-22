@@ -50,6 +50,8 @@ export const s = {
     submit: "Create account",
     haveAccount: "Already have an account? Log in",
     emailTaken: "There is already an account with this email. Try logging in.",
+    invalidEmail: "Please enter a valid email address.",
+    tooMany: "Too many sign-ups right now. Please wait a few minutes and try again.",
     weakPassword: "Please choose a password with at least 8 characters.",
     confirmEmail: "Almost done! Open the link in the email we just sent you to finish signing up.",
   },
