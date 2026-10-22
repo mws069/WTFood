@@ -50,7 +50,8 @@ export function SignupForm() {
       if (error.code === "email_address_invalid") return setMessage({ kind: "error", text: s.signup.invalidEmail });
       if (error.code === "weak_password") return setMessage({ kind: "error", text: s.signup.weakPassword });
       if (error.status === 429) return setMessage({ kind: "error", text: s.signup.tooMany });
-      return setMessage({ kind: "error", text: s.common.errorGeneric });
+      // Show the code so unexpected errors can be looked up.
+      return setMessage({ kind: "error", text: s.common.errorWithCode(error.code ?? String(error.status ?? "unknown")) });
     }
 
     // With "Confirm email" switched on in Supabase there is no session yet.

@@ -8,6 +8,7 @@ export const s = {
   common: {
     working: "One moment…",
     errorGeneric: "Something went wrong. Please try again.",
+    errorWithCode: (code: string) => `Something went wrong (${code}). Please try again.`,
     back: "Back",
     save: "Save",
     cancel: "Cancel",
