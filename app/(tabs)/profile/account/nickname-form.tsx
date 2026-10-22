@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { s } from "@/lib/strings";
-import { saveNickname } from "./actions";
+import { saveNickname } from "../actions";
 
 export function NicknameForm({ initial }: { initial: string }) {
   const [value, setValue] = useState(initial);

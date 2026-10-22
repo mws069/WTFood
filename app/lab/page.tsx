@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { BookIcon, ChevronRightIcon } from "@/components/icons";
+import { BookOpen, ChevronRight } from "lucide-react";
+import { IconTile } from "@/components/icon-tile";
 import { s } from "@/lib/strings";
 
 export default function LabPage() {
@@ -11,14 +12,12 @@ export default function LabPage() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Link href="/lab/knowledge" className="card flex items-center gap-4 active:scale-[0.99]">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-light text-brand">
-            <BookIcon />
-          </span>
+          <IconTile icon={BookOpen} color="blue" size="lg" />
           <span className="flex-1">
             <span className="block font-bold">{s.lab.knowledgeBase}</span>
             <span className="block text-sm text-muted">{s.lab.knowledgeBaseText}</span>
           </span>
-          <ChevronRightIcon className="text-muted" />
+          <ChevronRight className="text-muted" />
         </Link>
       </div>
     </>

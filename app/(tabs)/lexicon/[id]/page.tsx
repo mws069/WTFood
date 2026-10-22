@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeftIcon } from "@/components/icons";
+import { ArrowLeft } from "lucide-react";
+import { CategoryIcon } from "@/components/category-icon";
 import { VerdictPill } from "@/components/verdict-pill";
 import { parseIngredients } from "@/lib/dishes";
 import { ingredientByKey } from "@/lib/ingredients";
@@ -29,13 +30,14 @@ export default async function DishPage({ params }: PageProps<"/lexicon/[id]">) {
   return (
     <main className="flex flex-col gap-4 px-4 pb-4 pt-[calc(1rem+env(safe-area-inset-top))]">
       <Link href="/lexicon" className="inline-flex min-h-12 items-center gap-1 self-start text-sm font-medium text-muted">
-        <ArrowLeftIcon size={18} /> {s.lexicon.back}
+        <ArrowLeft size={18} /> {s.lexicon.back}
       </Link>
 
       {dish.status === "draft" && <p className="rounded-xl bg-page px-3 py-2 text-sm text-muted ring-1 ring-line">{s.lexicon.draftNote}</p>}
 
       <div className="animate-slide-up">
-        <p className="text-4xl font-bold" lang="zh-HK">
+        <CategoryIcon category={dish.category} size="lg" />
+        <p className="mt-3 text-4xl font-bold" lang="zh-HK">
           {dish.name_zh}
         </p>
         {dish.jyutping && <p className="mt-1 text-muted">{dish.jyutping}</p>}

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { RESTRICTIONS, restrictionByKey } from "@/lib/restrictions";
+import { RestrictionIcon } from "@/components/restriction-icon";
+import { RESTRICTIONS } from "@/lib/restrictions";
 import { s } from "@/lib/strings";
 import { deletePhrase, savePhrase } from "../actions";
 
@@ -44,7 +45,6 @@ function PhraseCard({ phrase }: { phrase?: Phrase }) {
     setStatus(null);
     setValues((v) => ({ ...v, [key]: value }));
   };
-  const restriction = restrictionByKey(values.restriction_key);
 
   return (
     <form
@@ -61,7 +61,7 @@ function PhraseCard({ phrase }: { phrase?: Phrase }) {
       }}
     >
       <div className="flex items-center gap-2">
-        <span aria-hidden="true">{restriction?.emoji}</span>
+        <RestrictionIcon restrictionKey={values.restriction_key} size="sm" />
         <select aria-label={s.lab.fields.restriction} value={values.restriction_key} onChange={(e) => set("restriction_key", e.target.value)} className="input flex-1">
           {RESTRICTIONS.map((r) => (
             <option key={r.key} value={r.key}>

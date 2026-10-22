@@ -6,12 +6,13 @@ import { verdictFor } from "@/lib/verdict";
 import { LexiconList } from "./lexicon-list";
 
 // Users see verified dishes; team members also see drafts (Row Level Security).
-export default async function LexiconPage() {
+export default async function LexiconPage({ searchParams }: PageProps<"/lexicon">) {
+  const { q } = await searchParams;
   const profile = await getCurrentProfile();
   const supabase = await createClient();
   const { data } = await supabase
     .from("dishes")
-    .select("id, name_zh, aliases, jyutping, name_en, ingredients, status")
+    .select("id, name_zh, aliases, jyutping, name_en, category, ingredients, status")
     .order("name_en");
 
   const dishes = (data ?? []).map((d) => ({
@@ -20,6 +21,7 @@ export default async function LexiconPage() {
     aliases: d.aliases,
     jyutping: d.jyutping,
     name_en: d.name_en,
+    category: d.category,
     draft: d.status === "draft",
     verdict: verdictFor({ ingredients: parseIngredients(d.ingredients) }, profile.restrictions).verdict,
   }));
@@ -30,7 +32,7 @@ export default async function LexiconPage() {
         <h1 className="text-2xl font-extrabold tracking-tight">{s.lexicon.title}</h1>
         <p className="mt-1 text-sm text-muted">{s.lexicon.intro}</p>
       </div>
-      {dishes.length === 0 ? <div className="card py-10 text-center text-muted">{s.lexicon.empty}</div> : <LexiconList dishes={dishes} />}
+      {dishes.length === 0 ? <div className="card py-10 text-center text-muted">{s.lexicon.empty}</div> : <LexiconList dishes={dishes} initialQuery={typeof q === "string" ? q : ""} />}
     </main>
   );
 }

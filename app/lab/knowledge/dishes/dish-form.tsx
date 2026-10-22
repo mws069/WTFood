@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { FormMessage } from "@/components/auth-shell";
+import { RestrictionIcon } from "@/components/restriction-icon";
 import { VerdictPill } from "@/components/verdict-pill";
 import { INGREDIENTS } from "@/lib/ingredients";
 import { RESTRICTIONS } from "@/lib/restrictions";
@@ -127,8 +128,8 @@ export function DishForm({ id, initial }: { id: number | null; initial: DishForm
           <ul className="flex flex-col gap-1.5 text-sm">
             {RESTRICTIONS.map((r) => (
               <li key={r.key} className="flex items-center justify-between gap-2">
-                <span>
-                  {r.emoji} {r.label}
+                <span className="flex items-center gap-2">
+                  <RestrictionIcon restrictionKey={r.key} size="xs" /> {r.label}
                 </span>
                 <VerdictPill verdict={verdictFor({ ingredients: values.ingredients }, [r.key]).verdict} size="sm" />
               </li>

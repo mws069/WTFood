@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeftIcon } from "@/components/icons";
+import { ArrowLeft } from "lucide-react";
 import { parseIngredients } from "@/lib/dishes";
 import { s } from "@/lib/strings";
 import { createClient } from "@/lib/supabase/server";
@@ -23,7 +23,7 @@ export default async function EditDishPage({ params }: PageProps<"/lab/knowledge
   return (
     <>
       <Link href="/lab/knowledge/dishes" className="inline-flex min-h-12 items-center gap-1 self-start text-sm font-medium text-muted">
-        <ArrowLeftIcon size={18} /> {s.lab.tabs.dishes}
+        <ArrowLeft size={18} /> {s.lab.tabs.dishes}
       </Link>
       <div>
         <h2 className="text-xl font-bold">

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { SearchIcon } from "@/components/icons";
+import { Search } from "lucide-react";
 import { dishMatches } from "@/lib/dishes";
 import { s } from "@/lib/strings";
 
@@ -33,7 +33,7 @@ export function DishTable({ dishes }: { dishes: Row[] }) {
       <div className="flex flex-wrap items-center gap-2">
         <label className="relative min-w-60 flex-1">
           <span className="sr-only">{s.lab.search}</span>
-          <SearchIcon size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+          <Search size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
           <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={s.lexicon.searchPlaceholder} className="input rounded-full pl-11" />
         </label>
         {FILTERS.map((f) => (

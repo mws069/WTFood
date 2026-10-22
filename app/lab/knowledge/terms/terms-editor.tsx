@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { SearchIcon } from "@/components/icons";
+import { Search } from "lucide-react";
 import { ingredientByKey, INGREDIENTS } from "@/lib/ingredients";
 import { s } from "@/lib/strings";
 import { deleteTerm, saveTerm } from "../actions";
@@ -32,7 +32,7 @@ export function TermsEditor({ terms }: { terms: Term[] }) {
     <section className="flex flex-col gap-3">
       <label className="relative">
         <span className="sr-only">{s.lab.search}</span>
-        <SearchIcon size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+        <Search size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
         <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={s.lab.search} className="input rounded-full pl-11" />
       </label>
       <p className="text-sm text-muted">{s.lab.termsCount(terms.length)}</p>

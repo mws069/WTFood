@@ -1,12 +1,19 @@
 "use client";
 
+import { Camera, ScanText, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { FormMessage } from "@/components/auth-shell";
+import { IconTile, type TileColor } from "@/components/icon-tile";
 import { Logo } from "@/lib/logo";
 import { s } from "@/lib/strings";
 
 const slides = s.welcome.slides;
+const SLIDE_ICONS = [
+  { icon: Camera, color: "blue" as TileColor },
+  { icon: ScanText, color: "orange" as TileColor },
+  { icon: ShieldCheck, color: "green" as TileColor },
+];
 
 export function Slides({ deleted }: { deleted: boolean }) {
   const [index, setIndex] = useState(0);
@@ -33,7 +40,7 @@ export function Slides({ deleted }: { deleted: boolean }) {
       )}
 
       <section key={index} className="animate-slide-up flex flex-1 flex-col items-center justify-center px-6 text-center" aria-live="polite">
-        <div className="flex h-40 w-40 items-center justify-center rounded-full bg-brand-light text-7xl">{slide.emoji}</div>
+        <IconTile icon={SLIDE_ICONS[index].icon} color={SLIDE_ICONS[index].color} size="xl" />
         <h1 className="mt-8 text-3xl font-extrabold tracking-tight">{slide.title}</h1>
         <p className="mt-3 max-w-xs text-muted">{slide.text}</p>
       </section>

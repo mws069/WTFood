@@ -15,6 +15,8 @@ Updated after every milestone. Newest entry on top.
   - Ingredient terms: add, edit, delete.
   - Staff phrases: add, edit, mark as reviewed by a local speaker.
 
+- **New look in super-app style:** coloured icon tiles instead of emojis everywhere (icons from the open-source set lucide, ISC license). Home: blue header with greeting, search field and four white quick actions, then the Scan card, "My restrictions" as an icon grid and a tip. Profile: grouped settings list; nickname, email and delete account moved to Profile → Account. Lexicon: a category tile per dish.
+
 **How to test**
 - Lexicon tab: normal users see only verified dishes, so it's empty until the team verifies dishes. Team members see all drafts.
 - Lab → Knowledge base → open a dish → check ingredients → Verified → Save. It then appears in every user's lexicon.

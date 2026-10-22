@@ -1,15 +1,15 @@
 "use client";
 
+import { BookOpen, House, ScanLine, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookIcon, HomeIcon, ScanIcon, UserIcon } from "@/components/icons";
 import { s } from "@/lib/strings";
 
 const TABS = [
-  { href: "/", label: s.tabs.home, Icon: HomeIcon },
-  { href: "/scan", label: s.tabs.scan, Icon: ScanIcon, centre: true },
-  { href: "/lexicon", label: s.tabs.lexicon, Icon: BookIcon },
-  { href: "/profile", label: s.tabs.profile, Icon: UserIcon },
+  { href: "/", label: s.tabs.home, Icon: House },
+  { href: "/scan", label: s.tabs.scan, Icon: ScanLine, centre: true },
+  { href: "/lexicon", label: s.tabs.lexicon, Icon: BookOpen },
+  { href: "/profile", label: s.tabs.profile, Icon: UserRound },
 ];
 
 // Bottom tab bar: Home · Scan (centre, prominent) · Lexicon · Profile.
@@ -20,7 +20,7 @@ export function TabBar() {
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-md border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur"
+      className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-md border-t border-line/70 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur"
     >
       <ul className="grid grid-cols-4">
         {TABS.map(({ href, label, Icon, centre }) => {
@@ -30,16 +30,14 @@ export function TabBar() {
               <Link
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={`flex min-h-16 flex-col items-center justify-center gap-0.5 text-xs font-medium ${
-                  active ? "text-brand" : "text-muted"
-                }`}
+                className={`flex min-h-16 flex-col items-center justify-center gap-1 text-[11px] font-semibold ${active ? "text-brand" : "text-[#666]"}`}
               >
                 {centre ? (
-                  <span className="-mt-6 flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-lg shadow-brand/30 ring-4 ring-white">
-                    <Icon size={26} />
+                  <span className="-mt-7 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-[#5aa2ff] to-[#1677ff] text-white shadow-lg shadow-brand/30 ring-4 ring-white">
+                    <Icon size={26} strokeWidth={2.2} />
                   </span>
                 ) : (
-                  <Icon size={24} />
+                  <Icon size={24} strokeWidth={active ? 2.3 : 1.8} />
                 )}
                 {label}
               </Link>

@@ -21,17 +21,14 @@ export const s = {
   welcome: {
     slides: [
       {
-        emoji: "📸",
         title: "Snap the menu",
         text: "Take a photo of a Chinese menu, an ordering kiosk or a food label.",
       },
       {
-        emoji: "🔍",
         title: "We read every dish",
         text: "Each item is translated, with the ingredients you can't see – lard, shrimp paste, oyster sauce and more.",
       },
       {
-        emoji: "🚦",
         title: "OK, Check or Avoid",
         text: "Every dish is checked against your dietary restrictions. Unsure? Show the staff a question in Chinese.",
       },
@@ -143,18 +140,20 @@ export const s = {
   home: {
     greeting: (name: string | null) => (name ? `Hi ${name}!` : "Hi there!"),
     headline: "What can I eat here?",
-    scanTitle: "Scan a menu",
-    scanText: "Photo of a menu, kiosk or food label",
+    searchPlaceholder: "Search dishes",
+    search: "Search",
+    scanTitle: "Snap a menu",
+    scanText: "Menu, kiosk or food label – we check every dish for you",
     quickActions: {
       scanMenu: "Scan menu",
       scanLabel: "Scan label",
-      lexicon: "Dish lexicon",
+      lexicon: "Lexicon",
       askStaff: "Ask staff",
-      restrictions: "My restrictions",
     },
-    checkingFor: "Checking for",
+    myRestrictions: "My restrictions",
+    edit: "Edit",
     tipTitle: "Tip",
-    tipText: "Soy sauce usually contains wheat, and many \"vegetable\" dishes are cooked with oyster sauce or lard. When in doubt, ask the staff.",
+    tipText: "Soy sauce usually contains wheat, and many \"vegetable\" dishes are cooked with oyster sauce or lard.",
   },
 
   scan: {
@@ -233,13 +232,16 @@ export const s = {
   profile: {
     title: "Profile",
     account: "Account",
+    accountTitle: "Account",
     nickname: "Nickname",
     noNickname: "Not set",
     email: "Email",
     restrictions: "My restrictions",
+    selected: (n: number) => (n === 1 ? "1 selected" : `${n} selected`),
     edit: "Edit",
     consentGiven: (date: string) => `Consent to store restrictions given on ${date}.`,
     privacy: "Privacy notice",
+    back: "Profile",
     logout: "Log out",
     deleteTitle: "Delete account",
     deleteText: "This permanently removes your account and all your data, including your dietary restrictions. This cannot be undone.",

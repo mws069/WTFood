@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeftIcon } from "@/components/icons";
+import { ArrowLeft } from "lucide-react";
 import { s } from "@/lib/strings";
 
 export const metadata = { title: `${s.privacy.title} · ${s.appName}` };
@@ -9,7 +9,7 @@ export default function PrivacyPage() {
   return (
     <main className="flex flex-col gap-4 px-4 pb-10 pt-6">
       <Link href="/" className="inline-flex min-h-12 items-center gap-1 self-start text-sm font-medium text-muted">
-        <ArrowLeftIcon size={18} /> {s.privacy.back}
+        <ArrowLeft size={18} /> {s.privacy.back}
       </Link>
       <div>
         <h1 className="text-2xl font-extrabold tracking-tight">{s.privacy.title}</h1>
