@@ -235,27 +235,27 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
-          display_name: string | null
           health_consent_at: string | null
           id: string
           restrictions: string[]
           role: string
+          username: string | null
         }
         Insert: {
           created_at?: string
-          display_name?: string | null
           health_consent_at?: string | null
           id: string
           restrictions?: string[]
           role?: string
+          username?: string | null
         }
         Update: {
           created_at?: string
-          display_name?: string | null
           health_consent_at?: string | null
           id?: string
           restrictions?: string[]
           role?: string
+          username?: string | null
         }
         Relationships: []
       }

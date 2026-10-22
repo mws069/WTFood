@@ -1,9 +1,9 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { UsernameForm } from "@/components/username-form";
 import { getCurrentProfile } from "@/lib/profile";
 import { s } from "@/lib/strings";
 import { DeleteAccount } from "./delete-account";
-import { NicknameForm } from "./nickname-form";
 
 const dateFormat = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Hong_Kong" });
 
@@ -18,7 +18,7 @@ export default async function AccountPage() {
       <h1 className="px-1 text-2xl font-extrabold tracking-tight">{s.profile.accountTitle}</h1>
 
       <section className="card flex flex-col gap-3">
-        <NicknameForm initial={profile.displayName ?? ""} />
+        <UsernameForm initial={profile.username ?? ""} onboarding={false} />
         <div>
           <p className="label">{s.profile.email}</p>
           <p className="mt-1 break-all text-muted">{profile.email}</p>

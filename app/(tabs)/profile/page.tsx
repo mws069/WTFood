@@ -16,7 +16,7 @@ export default async function ProfilePage() {
       <section className="card flex items-center gap-3">
         <IconTile icon={UserRound} color="orange" size="lg" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-lg font-bold">{profile.displayName ?? s.profile.noNickname}</p>
+          <p className="truncate text-lg font-bold">@{profile.username}</p>
           <p className="truncate text-sm text-muted">{profile.email}</p>
         </div>
         <div className="flex -space-x-1.5">
@@ -30,7 +30,7 @@ export default async function ProfilePage() {
 
       <SettingsGroup>
         <SettingsRow href="/restrictions" icon={Salad} color="green" label={s.profile.restrictions} value={s.profile.selected(profile.restrictions.length)} />
-        <SettingsRow href="/profile/account" icon={UserRound} color="orange" label={s.profile.account} value={profile.displayName ?? undefined} />
+        <SettingsRow href="/profile/account" icon={UserRound} color="orange" label={s.profile.account} value={profile.username ? `@${profile.username}` : undefined} />
       </SettingsGroup>
 
       <SettingsGroup>

@@ -90,7 +90,7 @@ try {
   console.log("\nTeam member");
   const t = team.client;
   expect("reads all profiles (names for the Lab)", ((await t.from("profiles").select("id")).data ?? []).length >= 2);
-  expect("cannot change another profile", blocked(await t.from("profiles").update({ display_name: "x" }).eq("id", user.id).select()));
+  expect("cannot change another profile", blocked(await t.from("profiles").update({ username: "xyz" }).eq("id", user.id).select()));
   expect("sees draft dishes", ((await t.from("dishes").select("id").eq("status", "draft").limit(1)).data ?? []).length > 0);
   const added = await t.from("dishes").insert({ name_zh: `草稿${stamp}`, name_en: "RLS draft" }).select("id").single();
   expect("adds a dish", added.error === null);

@@ -41,9 +41,12 @@ export const s = {
 
   signup: {
     title: "Create your account",
-    intro: "No real name needed. Your email is only used to log in.",
-    nicknameLabel: "Nickname (optional)",
-    nicknamePlaceholder: "What should we call you?",
+    intro: "No real name needed. You log in with your username or email.",
+    usernameLabel: "Username",
+    usernameHint: "3–20 characters: letters, numbers, _ or .",
+    usernamePlaceholder: "e.g. max_eats",
+    usernameTaken: "This username is taken. Please choose another one.",
+    usernameInvalid: "Use 3–20 characters: letters, numbers, _ or .",
     submit: "Create account",
     haveAccount: "Already have an account? Log in",
     emailTaken: "There is already an account with this email. Try logging in.",
@@ -55,12 +58,28 @@ export const s = {
 
   login: {
     title: "Welcome back",
+    identifierLabel: "Username or email",
+    identifierPlaceholder: "max_eats or you@example.com",
     submit: "Log in",
     forgot: "Forgot password?",
     noAccount: "New here? Create an account",
-    wrongCredentials: "Email or password is wrong.",
+    wrongCredentials: "Username, email or password is wrong.",
     linkError: "This link has expired or was already used. Please request a new one.",
     sessionEnded: "Your session has ended. Please log in again.",
+    oauthError: "Logging in with Google didn't work. Please try again.",
+  },
+
+  oauth: {
+    or: "or",
+    google: "Continue with Google",
+    apple: "Continue with Apple",
+  },
+
+  username: {
+    title: "Choose a username",
+    intro: "You can use it to log in instead of your email. Others in the app only ever see your username.",
+    submit: "Continue",
+    saved: "Saved",
   },
 
   forgot: {
@@ -233,8 +252,7 @@ export const s = {
     title: "Profile",
     account: "Account",
     accountTitle: "Account",
-    nickname: "Nickname",
-    noNickname: "Not set",
+    username: "Username",
     email: "Email",
     restrictions: "My restrictions",
     selected: (n: number) => (n === 1 ? "1 selected" : `${n} selected`),
@@ -248,7 +266,6 @@ export const s = {
     deleteButton: "Delete my account",
     deleteConfirm: "Yes, delete everything",
     deleted: "Your account and all your data have been deleted.",
-    nicknameSaved: "Saved",
   },
 
   privacy: {
@@ -266,7 +283,8 @@ export const s = {
         title: "What we store",
         text: [
           "Your email address and password (the password only in encrypted form), so you can log in.",
-          "Your nickname, if you choose one.",
+          "If you log in with Google: Google tells us your email address and your Google account name. We only use the email address.",
+          "Your username.",
           "Your dietary restrictions and the date you agreed to us storing them. These are health-related data, so we only store them with your explicit consent.",
           "Anonymous usage numbers (for example how many items a scan found and how long it took), without your account or your photo.",
         ],

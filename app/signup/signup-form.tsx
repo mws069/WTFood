@@ -2,37 +2,44 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { isUsernameFree } from "@/app/auth/actions";
 import { FormMessage } from "@/components/auth-shell";
+import { UsernameField } from "@/components/username-field";
 import { s } from "@/lib/strings";
 import { createClient } from "@/lib/supabase/client";
 import { signupSchema } from "@/lib/validation";
 
 export function SignupForm() {
   const router = useRouter();
+  const [username, setUsername] = useState("");
+  const [usernameError, setUsernameError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ kind: "error" | "info"; text: string } | null>(null);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
-    const parsed = signupSchema.safeParse({
-      nickname: form.get("nickname"),
-      email: form.get("email"),
-      password: form.get("password"),
-    });
+    const parsed = signupSchema.safeParse({ username, email: form.get("email"), password: form.get("password") });
     if (!parsed.success) {
       const field = parsed.error.issues[0]?.path[0];
+      if (field === "username") return setUsernameError(s.signup.usernameInvalid);
       return setMessage({ kind: "error", text: field === "password" ? s.signup.weakPassword : s.signup.invalidEmail });
     }
 
     setBusy(true);
     setMessage(null);
-    const { nickname, email, password } = parsed.data;
+    setUsernameError(null);
+    if ((await isUsernameFree(parsed.data.username)) !== true) {
+      setBusy(false);
+      return setUsernameError(s.signup.usernameTaken);
+    }
+
+    const { email, password } = parsed.data;
     const { data, error } = await createClient().auth.signUp({
       email,
       password,
       options: {
-        data: { display_name: nickname },
+        data: { username: parsed.data.username },
         emailRedirectTo: `${window.location.origin}/auth/confirm?next=/consent`,
       },
     });
@@ -52,16 +59,20 @@ export function SignupForm() {
       return setMessage({ kind: "info", text: s.signup.confirmEmail });
     }
 
-    router.replace("/consent");
+    router.replace("/");
     router.refresh();
   }
 
   return (
     <form onSubmit={onSubmit} className="card flex flex-col gap-3" noValidate>
-      <label htmlFor="nickname" className="label">
-        {s.signup.nicknameLabel}
-      </label>
-      <input id="nickname" name="nickname" type="text" maxLength={40} autoComplete="nickname" placeholder={s.signup.nicknamePlaceholder} className="input" />
+      <UsernameField
+        value={username}
+        onChange={(v) => {
+          setUsername(v);
+          setUsernameError(null);
+        }}
+        error={usernameError}
+      />
 
       <label htmlFor="email" className="label mt-1">
         {s.common.emailLabel}

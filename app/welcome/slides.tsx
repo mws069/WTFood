@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { FormMessage } from "@/components/auth-shell";
 import { IconTile, type TileColor } from "@/components/icon-tile";
+import { OAuthButtons } from "@/components/oauth-buttons";
 import { Logo } from "@/lib/logo";
 import { s } from "@/lib/strings";
 
@@ -60,6 +61,7 @@ export function Slides({ deleted }: { deleted: boolean }) {
             <Link href="/login" className="btn-secondary">
               {s.welcome.haveAccount}
             </Link>
+            <OAuthButtons />
           </>
         ) : (
           <button type="button" onClick={() => setIndex(index + 1)} className="btn-primary">

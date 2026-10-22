@@ -2,10 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { signInWithIdentifier } from "@/app/auth/actions";
 import { FormMessage } from "@/components/auth-shell";
 import { s } from "@/lib/strings";
-import { createClient } from "@/lib/supabase/client";
-import { loginSchema } from "@/lib/validation";
 
 export function LoginForm() {
   const router = useRouter();
@@ -15,15 +14,12 @@ export function LoginForm() {
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
-    const parsed = loginSchema.safeParse({ email: form.get("email"), password: form.get("password") });
-    if (!parsed.success) return setError(s.login.wrongCredentials);
-
     setBusy(true);
     setError(null);
-    const { error } = await createClient().auth.signInWithPassword(parsed.data);
-    if (error) {
+    const result = await signInWithIdentifier({ identifier: form.get("identifier"), password: form.get("password") });
+    if ("error" in result) {
       setBusy(false);
-      return setError(error.code === "invalid_credentials" ? s.login.wrongCredentials : s.common.errorGeneric);
+      return setError(result.error === "credentials" ? s.login.wrongCredentials : s.common.errorGeneric);
     }
     router.replace("/");
     router.refresh();
@@ -31,10 +27,20 @@ export function LoginForm() {
 
   return (
     <form onSubmit={onSubmit} className="card flex flex-col gap-3" noValidate>
-      <label htmlFor="email" className="label">
-        {s.common.emailLabel}
+      <label htmlFor="identifier" className="label">
+        {s.login.identifierLabel}
       </label>
-      <input id="email" name="email" type="email" required autoComplete="email" inputMode="email" placeholder={s.common.emailPlaceholder} className="input" />
+      <input
+        id="identifier"
+        name="identifier"
+        type="text"
+        required
+        autoComplete="username"
+        autoCapitalize="none"
+        spellCheck={false}
+        placeholder={s.login.identifierPlaceholder}
+        className="input"
+      />
 
       <label htmlFor="password" className="label mt-1">
         {s.common.passwordLabel}

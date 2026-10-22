@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 export type CurrentProfile = {
   id: string;
   email: string;
-  displayName: string | null;
+  username: string | null;
   restrictions: string[];
   healthConsentAt: string | null;
   role: "user" | "team";
@@ -20,7 +20,7 @@ export async function getCurrentProfile(): Promise<CurrentProfile> {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("display_name, restrictions, health_consent_at, role")
+    .select("username, restrictions, health_consent_at, role")
     .eq("id", id)
     .maybeSingle();
   if (!profile) redirect("/auth/signout");
@@ -28,7 +28,7 @@ export async function getCurrentProfile(): Promise<CurrentProfile> {
   return {
     id,
     email: String(claims.claims.email ?? ""),
-    displayName: profile.display_name,
+    username: profile.username,
     restrictions: profile.restrictions,
     healthConsentAt: profile.health_consent_at,
     role: profile.role === "team" ? "team" : "user",
@@ -36,7 +36,9 @@ export async function getCurrentProfile(): Promise<CurrentProfile> {
 }
 
 // Where a user still has to go before using the app, if anywhere.
+// (Google users have no username yet after their first login.)
 export function onboardingStep(profile: CurrentProfile): string | null {
+  if (!profile.username) return "/username";
   if (!profile.healthConsentAt) return "/consent";
   if (profile.restrictions.length === 0) return "/restrictions";
   return null;

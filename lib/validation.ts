@@ -6,16 +6,22 @@ import { RESTRICTION_KEYS } from "@/lib/restrictions";
 
 export const emailSchema = z.string().trim().toLowerCase().email();
 export const passwordSchema = z.string().min(8).max(72);
-export const nicknameSchema = z.string().trim().max(40);
+// 3–20 lower-case letters, numbers, _ or . (same rule as in the database)
+export const usernameSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .regex(/^[a-z0-9_.]{3,20}$/);
 
 export const signupSchema = z.object({
-  nickname: nicknameSchema,
+  username: usernameSchema,
   email: emailSchema,
   password: passwordSchema,
 });
 
 export const loginSchema = z.object({
-  email: emailSchema,
+  // email or username
+  identifier: z.string().trim().toLowerCase().min(1).max(254),
   password: z.string().min(1),
 });
 

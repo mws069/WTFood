@@ -31,7 +31,6 @@ export async function GET(request: NextRequest) {
   if (ok) {
     return NextResponse.redirect(new URL(next, origin));
   }
-  return NextResponse.redirect(
-    new URL(`/login?error=link&next=${encodeURIComponent(next)}`, origin),
-  );
+  const kind = searchParams.has("error") || (!tokenHash && !code) ? "oauth" : "link";
+  return NextResponse.redirect(new URL(`/login?error=${kind}`, origin));
 }

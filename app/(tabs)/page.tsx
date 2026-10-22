@@ -23,7 +23,7 @@ export default async function HomePage() {
   return (
     <main className="flex flex-col">
       <header className="bg-gradient-to-b from-[#2b86ff] to-[#1677ff] px-4 pb-10 pt-[calc(1.25rem+env(safe-area-inset-top))] text-white">
-        <p className="text-sm font-semibold text-white/85">{s.home.greeting(profile.displayName)}</p>
+        <p className="text-sm font-semibold text-white/85">{s.home.greeting(profile.username)}</p>
         <h1 className="mt-0.5 text-[26px] font-extrabold leading-tight tracking-tight">{s.home.headline}</h1>
 
         <form action="/lexicon" className="mt-4 flex h-11 items-center gap-2 rounded-full bg-white pl-4 pr-1.5 text-ink">

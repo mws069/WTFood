@@ -17,7 +17,7 @@ const { data, error } = await admin.auth.admin.createUser({
   email,
   password,
   email_confirm: true,
-  user_metadata: { display_name: "Tester" },
+  user_metadata: { username: email.split("@")[0].replace(/[^a-z0-9_.]/g, "").slice(0, 20) },
 });
 if (error) throw error;
 console.log(`Created ${data.user.email}`);

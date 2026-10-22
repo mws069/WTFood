@@ -17,7 +17,7 @@ export default async function EditDishPage({ params }: PageProps<"/lab/knowledge
   if (!dish) notFound();
 
   const { data: verifier } = dish.verified_by
-    ? await supabase.from("profiles").select("display_name").eq("id", dish.verified_by).maybeSingle()
+    ? await supabase.from("profiles").select("username").eq("id", dish.verified_by).maybeSingle()
     : { data: null };
 
   return (
@@ -31,7 +31,7 @@ export default async function EditDishPage({ params }: PageProps<"/lab/knowledge
         </h2>
         <p className="text-sm text-muted">
           {dish.status === "verified" && dish.verified_by
-            ? s.lab.verifiedBy(verifier?.display_name ?? "?", dateFormat.format(new Date(dish.updated_at)))
+            ? s.lab.verifiedBy(verifier?.username ?? "?", dateFormat.format(new Date(dish.updated_at)))
             : s.lab.updated(dateFormat.format(new Date(dish.updated_at)))}
         </p>
       </div>
