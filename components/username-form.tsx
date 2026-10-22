@@ -43,11 +43,9 @@ export function UsernameForm({ initial, onboarding }: { initial: string; onboard
         }}
         error={error}
       />
-      {(onboarding || value !== saved) && (
-        <button type="submit" className="btn-primary" disabled={pending || value.length < 3}>
-          {pending ? s.common.working : onboarding ? s.username.submit : s.common.save}
-        </button>
-      )}
+      <button type="submit" className="btn-primary" disabled={pending || value.length < 3 || (!onboarding && value === saved)}>
+        {pending ? s.common.working : onboarding ? s.username.submit : s.common.save}
+      </button>
       {done && !onboarding && (
         <p className="text-xs text-ok" role="status">
           {s.username.saved}

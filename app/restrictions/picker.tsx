@@ -10,6 +10,8 @@ import { saveRestrictions } from "./actions";
 // Chip grid grouped like the brief; at least one choice is required.
 export function RestrictionsPicker({ initial, onboarding }: { initial: string[]; onboarding: boolean }) {
   const [selected, setSelected] = useState<string[]>(initial);
+  // When editing, Save stays greyed out until the selection changes.
+  const unchanged = !onboarding && [...selected].sort().join() === [...initial].sort().join();
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -66,7 +68,7 @@ export function RestrictionsPicker({ initial, onboarding }: { initial: string[];
           <span className="text-sm text-muted" aria-live="polite">
             {s.restrictions.selected(selected.length)}
           </span>
-          <button type="button" onClick={submit} disabled={pending} className="btn-primary flex-1">
+          <button type="button" onClick={submit} disabled={pending || unchanged} className="btn-primary flex-1">
             {pending ? s.common.working : onboarding ? s.restrictions.submit : s.common.save}
           </button>
         </div>

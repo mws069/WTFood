@@ -157,12 +157,6 @@ export const s = {
     search: "Search",
     scanTitle: "Snap a menu",
     scanText: "Menu, kiosk or food label – we check every dish for you",
-    quickActions: {
-      scanMenu: "Scan menu",
-      scanLabel: "Scan label",
-      lexicon: "Lexicon",
-      askStaff: "Ask staff",
-    },
     myRestrictions: "My restrictions",
     edit: "Edit",
     tipTitle: "Tip",

@@ -1,4 +1,4 @@
-import { ArrowRight, BookOpen, Camera, ChevronRight, Lightbulb, MessagesSquare, ScanLine, ScanText, Search } from "lucide-react";
+import { ArrowRight, Camera, ChevronRight, Lightbulb, Search } from "lucide-react";
 import Link from "next/link";
 import { IconTile } from "@/components/icon-tile";
 import { RestrictionIcon } from "@/components/restriction-icon";
@@ -6,23 +6,16 @@ import { getCurrentProfile } from "@/lib/profile";
 import { restrictionByKey } from "@/lib/restrictions";
 import { s } from "@/lib/strings";
 
-const QUICK_ACTIONS = [
-  { href: "/scan?kind=menu", label: s.home.quickActions.scanMenu, Icon: ScanLine },
-  { href: "/scan?kind=label", label: s.home.quickActions.scanLabel, Icon: ScanText },
-  { href: "/lexicon", label: s.home.quickActions.lexicon, Icon: BookOpen },
-  { href: "/scan", label: s.home.quickActions.askStaff, Icon: MessagesSquare },
-];
-
-// Home like a super-app: blue header with greeting, search and white quick
-// actions; below a white sheet with the big Scan card, the user's
-// restrictions as an icon grid and a tip.
+// Home like a super-app: blue header with greeting and search; below a
+// white sheet with the one Scan card, the user's restrictions as an icon
+// grid and a tip. (Scanning is also the centre button of the tab bar.)
 export default async function HomePage() {
   const profile = await getCurrentProfile();
   const restrictions = profile.restrictions.map(restrictionByKey).filter((r) => r !== undefined);
 
   return (
     <main className="flex flex-col">
-      <header className="bg-gradient-to-b from-[#2b86ff] to-[#1677ff] px-4 pb-10 pt-[calc(1.25rem+env(safe-area-inset-top))] text-white">
+      <header className="bg-gradient-to-b from-[#2b86ff] to-[#1677ff] px-4 pb-9 pt-[calc(1.25rem+env(safe-area-inset-top))] text-white">
         <p className="text-sm font-semibold text-white/85">{s.home.greeting(profile.username)}</p>
         <h1 className="mt-0.5 text-[26px] font-extrabold leading-tight tracking-tight">{s.home.headline}</h1>
 
@@ -38,14 +31,6 @@ export default async function HomePage() {
           </button>
         </form>
 
-        <nav aria-label="Quick actions" className="mt-5 grid grid-cols-4">
-          {QUICK_ACTIONS.map(({ href, label, Icon }) => (
-            <Link key={label} href={href} className="flex flex-col items-center gap-1.5 py-1 text-[13px] font-semibold active:opacity-70">
-              <Icon size={34} strokeWidth={1.7} aria-hidden="true" />
-              {label}
-            </Link>
-          ))}
-        </nav>
       </header>
 
       <div className="-mt-5 flex flex-col gap-3 rounded-t-[22px] bg-page px-3 pt-3">

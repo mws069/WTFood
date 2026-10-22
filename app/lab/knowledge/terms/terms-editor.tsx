@@ -89,11 +89,9 @@ function TermRow({ term }: { term?: Term }) {
       </select>
       <input aria-label={s.lab.fields.note} value={values.note} onChange={(e) => set("note", e.target.value)} placeholder={s.lab.fields.note} className="input" />
       <div className="flex items-center gap-2">
-        {(dirty || !term) && (
-          <button type="submit" className="btn-primary px-4" disabled={pending}>
-            {term ? s.lab.save : s.lab.add}
-          </button>
-        )}
+        <button type="submit" className="btn-primary px-4" disabled={pending || !dirty}>
+          {term ? s.lab.save : s.lab.add}
+        </button>
         {term && !dirty && (
           <button
             type="button"

@@ -29,6 +29,9 @@ const ERRORS = { invalid: s.lab.invalid, needsSource: s.lab.needsSource, duplica
 
 export function DishForm({ id, initial }: { id: number | null; initial: DishFormValues }) {
   const [values, setValues] = useState(initial);
+  // Last saved state: Save stays greyed out until something differs from it.
+  const [saved, setSaved] = useState(initial);
+  const dirty = JSON.stringify(values) !== JSON.stringify(saved);
   const [message, setMessage] = useState<{ kind: "error" | "info"; text: string } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -44,7 +47,9 @@ export function DishForm({ id, initial }: { id: number | null; initial: DishForm
     e.preventDefault();
     startTransition(async () => {
       const result = await saveDish(id, values);
-      setMessage("error" in result ? { kind: "error", text: ERRORS[result.error] } : { kind: "info", text: s.lab.saved });
+      if ("error" in result) return setMessage({ kind: "error", text: ERRORS[result.error] });
+      setSaved(values);
+      setMessage({ kind: "info", text: s.lab.saved });
     });
   }
 
@@ -117,7 +122,7 @@ export function DishForm({ id, initial }: { id: number | null; initial: DishForm
             ))}
           </div>
           {message && <FormMessage {...message} />}
-          <button type="submit" className="btn-primary" disabled={pending}>
+          <button type="submit" className="btn-primary" disabled={pending || !dirty}>
             {pending ? s.common.working : s.lab.save}
           </button>
         </div>

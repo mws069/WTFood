@@ -78,11 +78,9 @@ function PhraseCard({ phrase }: { phrase?: Phrase }) {
         {s.lab.fields.reviewed}
       </label>
       <div className="flex items-center gap-2">
-        {(dirty || !phrase) && (
-          <button type="submit" className="btn-primary px-5" disabled={pending}>
-            {phrase ? s.lab.save : s.lab.add}
-          </button>
-        )}
+        <button type="submit" className="btn-primary px-5" disabled={pending || !dirty}>
+          {phrase ? s.lab.save : s.lab.add}
+        </button>
         {phrase && !dirty && (
           <button
             type="button"
