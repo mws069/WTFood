@@ -11,7 +11,7 @@ export default async function TabsLayout({ children }: LayoutProps<"/">) {
 
   return (
     <>
-      <div className="flex flex-1 flex-col pb-[calc(5rem+env(safe-area-inset-bottom))]">{children}</div>
+      <div className="flex flex-1 flex-col pb-[calc(9rem+env(safe-area-inset-bottom))]">{children}</div>
       <TabBar />
     </>
   );

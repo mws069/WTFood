@@ -7,6 +7,8 @@ Updated after every milestone. Newest entry on top.
 **What changed**
 - **Save buttons are grey until something changes** (Lab dishes, ingredient terms, staff phrases, username, restrictions). After saving they turn grey again.
 - **Home has one way to scan:** the four quick-action icons in the blue header are gone (three of them opened the same scan screen). Scanning starts from the "Snap a menu" card or the Scan button in the tab bar; menu / kiosk / label is chosen on the scan screen (milestone 4). This deviates from the brief's quick-action grid at Max's request.
+- **Tab bar with three tabs** (Home · Lexicon · Profile) and a **floating Scan button** in the bottom-right corner above the bar, so the tab labels line up again. Hidden on the scan screen itself.
+- **New app icon:** glowing blue gradient, scan frame around the bowl with chopsticks and a gradient "AI" badge. On the iPhone, remove and re-add the app to the Home Screen to see it.
 - Fixed: the live app used an invalid Supabase key (sign-up failed with "401"); the keys in Vercel were replaced with the working ones.
 
 ## 2026-10-22 · Fix: missing profiles
