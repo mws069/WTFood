@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { FormMessage } from "@/components/auth-shell";
 import { s } from "@/lib/strings";
-import { deleteAccount } from "./actions";
+import { deleteAccount } from "../actions";
 
 // Two steps on purpose: first reveal the warning, then confirm.
 export function DeleteAccount() {

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { FormMessage } from "@/components/auth-shell";
+import { RestrictionIcon } from "@/components/restriction-icon";
 import { RESTRICTION_GROUPS, RESTRICTIONS } from "@/lib/restrictions";
 import { s } from "@/lib/strings";
 import { saveRestrictions } from "./actions";
@@ -40,11 +41,11 @@ export function RestrictionsPicker({ initial, onboarding }: { initial: string[];
                     type="button"
                     aria-pressed={on}
                     onClick={() => toggle(r.key)}
-                    className={`inline-flex min-h-12 items-center gap-2 rounded-full border px-4 text-sm font-medium transition active:scale-[0.97] ${
-                      on ? "border-brand bg-brand text-white" : "border-line bg-white text-ink"
+                    className={`inline-flex min-h-12 items-center gap-2 rounded-full border-2 pl-2.5 pr-4 text-sm font-semibold transition active:scale-[0.97] ${
+                      on ? "border-brand bg-brand-light text-brand-dark" : "border-transparent bg-white text-ink"
                     }`}
                   >
-                    <span aria-hidden="true">{r.emoji}</span>
+                    <RestrictionIcon restrictionKey={r.key} size="xs" />
                     {r.label}
                   </button>
                 );

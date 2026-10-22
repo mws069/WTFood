@@ -31,7 +31,5 @@ export async function GET(request: NextRequest) {
   if (ok) {
     return NextResponse.redirect(new URL(next, origin));
   }
-  return NextResponse.redirect(
-    new URL(`/login?error=link&next=${encodeURIComponent(next)}`, origin),
-  );
+  return NextResponse.redirect(new URL("/login?error=link", origin));
 }

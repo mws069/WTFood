@@ -2,17 +2,23 @@
   "name": "wtfood",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "db:types": "supabase gen types --lang typescript --linked --schema public > lib/database.types.ts",
-    "db:test-user": "node --env-file=.env.local scripts/test-user.mts"
+    "db:test-user": "node --env-file=.env.local scripts/test-user.mts",
+    "test": "node --test lib/",
+    "db:seed": "node --env-file=.env.local scripts/seed.mts",
+    "db:team": "node --env-file=.env.local scripts/team.mts",
+    "db:test-rls": "node --env-file=.env.local scripts/test-rls.mts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.118.0",
+    "lucide-react": "^1.61.0",
     "next": "16.4.2",
     "react": "19.3.0",
     "react-dom": "19.3.0",

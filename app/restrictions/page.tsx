@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeftIcon } from "@/components/icons";
+import { ArrowLeft } from "lucide-react";
 import { getCurrentProfile } from "@/lib/profile";
 import { s } from "@/lib/strings";
 import { RestrictionsPicker } from "./picker";
@@ -16,7 +16,7 @@ export default async function RestrictionsPage({ searchParams }: PageProps<"/res
     <main className="flex flex-1 flex-col px-4 pb-6 pt-6">
       {!onboarding && (
         <Link href="/profile" className="mb-2 inline-flex min-h-12 items-center gap-1 self-start text-sm font-medium text-muted">
-          <ArrowLeftIcon size={18} /> {s.common.back}
+          <ArrowLeft size={18} /> {s.common.back}
         </Link>
       )}
       <h1 className="text-2xl font-extrabold tracking-tight">{onboarding ? s.restrictions.title : s.restrictions.editTitle}</h1>

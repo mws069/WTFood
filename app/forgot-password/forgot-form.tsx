@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Mail } from "lucide-react";
 import { FormMessage } from "@/components/auth-shell";
+import { IconTile } from "@/components/icon-tile";
 import { s } from "@/lib/strings";
 import { createClient } from "@/lib/supabase/client";
 import { emailSchema } from "@/lib/validation";
@@ -53,9 +55,7 @@ export function ForgotForm() {
   if (email) {
     return (
       <div className="card animate-slide-up flex flex-col items-center gap-3 py-6 text-center">
-        <span className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-light text-3xl" aria-hidden="true">
-          ✉️
-        </span>
+        <IconTile icon={Mail} color="blue" size="lg" />
         <h2 className="text-lg font-bold">{s.forgot.sentTitle}</h2>
         <p className="text-sm text-muted" role="status">
           {s.forgot.sent(email)}

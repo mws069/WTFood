@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ShieldIcon } from "@/components/icons";
+import { ShieldCheck } from "lucide-react";
+import { IconTile } from "@/components/icon-tile";
 import { getCurrentProfile } from "@/lib/profile";
 import { s } from "@/lib/strings";
 import { ConsentForm } from "./consent-form";
@@ -14,8 +15,8 @@ export default async function ConsentPage() {
   return (
     <main className="flex flex-1 flex-col justify-center gap-6 px-4 py-10">
       <div className="text-center">
-        <span className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-brand-light text-brand">
-          <ShieldIcon size={40} />
+        <span className="inline-flex">
+          <IconTile icon={ShieldCheck} color="blue" size="xl" />
         </span>
         <h1 className="mt-4 text-2xl font-extrabold tracking-tight">{s.consent.title}</h1>
       </div>
