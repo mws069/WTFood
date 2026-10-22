@@ -7,7 +7,7 @@ Updated after every milestone. Newest entry on top.
 **What works now**
 - **Welcome:** 3 intro slides (Snap the menu · We read every dish · OK, Check or Avoid) with Skip, then "Create account" or "I already have an account". Logged-out visitors always land here.
 - **Sign-up** with email + password (min. 8 characters) and an optional nickname. No real name needed.
-- **Login**, **Forgot password** (email with a link to choose a new password) and **Log out**.
+- **Login**, **Forgot password** and **Log out**. After sending the reset link the form is replaced by a "Check your inbox" message with a 1-minute countdown, then "Resend link" (or "Use a different email").
 - **Consent screen** after sign-up: explains that restrictions are health data, unticked checkbox, nothing is stored before consent. The database also refuses restrictions without a consent date.
 - **Restrictions picker:** 15 restrictions as chips in 3 groups (Allergies & intolerances · Diets · Religious & other), at least one required. Editable later from Home or Profile.
 - **Home:** blue header with greeting, big Scan card, 5 round quick actions, "Checking for" chips, tip card.
@@ -15,7 +15,7 @@ Updated after every milestone. Newest entry on top.
 - **Profile:** restrictions with consent date, nickname (editable), email, privacy notice, log out, **delete account** (two steps; removes the account and all data immediately).
 - **Privacy notice** at `/privacy` (public): what is stored, what not, where, PDPO rights, contact wtfood@maximilian-schiller.com.
 - **PWA:** app name, blue app icon (bowl with chopsticks, placeholder), installable on iPhone and Android.
-- Design tokens from the brief (blue #1677FF, verdict colours, 16 px cards, pill buttons, 48 px tap targets), Inter font.
+- Design tokens from the brief (blue #1677FF, verdict colours, 16 px cards, pill buttons, 48 px tap targets). Font: **Manrope** (SIL Open Font License), self-hosted as small Latin-only files in `app/fonts/`.
 
 **How to test**
 - Open the preview link on your phone → slides → Create account → consent → pick restrictions → Home.
