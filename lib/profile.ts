@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export type CurrentProfile = {
@@ -18,12 +19,27 @@ export async function getCurrentProfile(): Promise<CurrentProfile> {
   const id = claims?.claims.sub;
   if (!id) redirect("/welcome");
 
-  const { data: profile } = await supabase
+  let { data: profile } = await supabase
     .from("profiles")
     .select("username, restrictions, health_consent_at, role")
     .eq("id", id)
     .maybeSingle();
-  if (!profile) redirect("/auth/signout");
+
+  // Account exists but its profile row is missing (e.g. deleted by hand in
+  // the dashboard): create an empty one, the user then goes through
+  // onboarding again instead of being thrown out.
+  if (!profile) {
+    const admin = createAdminClient();
+    const { data: account } = await admin.auth.admin.getUserById(id);
+    if (!account.user) redirect("/auth/signout");
+    const { data: created } = await admin
+      .from("profiles")
+      .upsert({ id }, { onConflict: "id" })
+      .select("username, restrictions, health_consent_at, role")
+      .single();
+    if (!created) redirect("/auth/signout");
+    profile = created;
+  }
 
   return {
     id,

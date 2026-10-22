@@ -2,6 +2,19 @@
 
 Updated after every milestone. Newest entry on top.
 
+## 2026-10-22 · Fix: missing profiles
+
+**What happened**
+- All three existing profiles had disappeared from the database (the accounts themselves still existed). Nothing in the app deletes profiles, so they were most likely removed by hand in the Supabase table view. As a result usernames like "admin" counted as free, and logged-in users were thrown out.
+
+**What works now**
+- The three profiles are restored (Max's gmail account is team again). Usernames, consent and restrictions have to be entered again on the next login.
+- If a profile row is ever missing again, the app creates an empty one and the user goes through onboarding instead of being logged out.
+- Unexpected sign-up errors show their error code, e.g. "Something went wrong (code). Please try again."
+
+**Note**
+- In Supabase, only change the `role` column of `profiles` by hand; deleting a row there removes the user's data. To remove a user, use Authentication → Users (or Profile → Delete account).
+
 ## 2026-10-22 · Milestone 3: Knowledge base
 
 **What works now**
