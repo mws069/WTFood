@@ -120,6 +120,51 @@ export function ChevronRightIcon(p: IconProps) {
   );
 }
 
+export function OkIcon(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m8 12 3 3 5-6" />
+    </Svg>
+  );
+}
+
+export function CheckIcon(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M10.3 4.2 2.6 17.5A2 2 0 0 0 4.3 20.5h15.4a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0Z" />
+      <path d="M12 10v4M12 17.5h.01" />
+    </Svg>
+  );
+}
+
+export function AvoidIcon(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m15 9-6 6M9 9l6 6" />
+    </Svg>
+  );
+}
+
+export function SearchIcon(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" />
+    </Svg>
+  );
+}
+
+export function FlaskIcon(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3" />
+      <path d="M7.5 15h9" />
+    </Svg>
+  );
+}
+
 export function ArrowLeftIcon(p: IconProps) {
   return (
     <Svg {...p}>

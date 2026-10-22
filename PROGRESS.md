@@ -2,6 +2,38 @@
 
 Updated after every milestone. Newest entry on top.
 
+## 2026-10-22 · Milestone 3: Knowledge base
+
+**What works now**
+- **All database tables** from the brief (knowledge base, feedback, scan stats, Lab, study) with Row Level Security.
+- **Rule engine** (`lib/verdict.ts`): turns ingredients into OK / Check / Avoid for the user's restrictions. 101 unit tests, covering every restriction, hidden ingredients (lard, oyster sauce, shrimp paste, soy sauce with wheat, cooking wine in Chinese sausage …) and "unknown → Check".
+- **Restrictions** now define what they rule out (e.g. vegetarian: meat, fish, seafood, lard, gelatin; halal: pork and alcohol → Avoid, other meat → Check).
+- **Seed data:** 93 ingredients, 189 Chinese ingredient terms (with Simplified variants and notes such as "牛油 = butter in Hong Kong"), **53 Hong Kong dishes as drafts** (each with a source link that was checked), 15 Ask-staff phrases (not reviewed).
+- **Lexicon:** search in English, Chinese or Jyutping ("bo lo" finds 菠蘿包), every dish with its verdict for you; dish page with Chinese name, Jyutping, description, likely ingredients with certainty, reasons and source.
+- **Lab (team only):** Profile → "Lab (team)". Knowledge base editor:
+  - Dishes: search, filter draft/verified, edit all fields and ingredients, live preview of the verdict for every restriction, draft → verified (needs a source URL, remembers who verified).
+  - Ingredient terms: add, edit, delete.
+  - Staff phrases: add, edit, mark as reviewed by a local speaker.
+
+**How to test**
+- Lexicon tab: normal users see only verified dishes, so it's empty until the team verifies dishes. Team members see all drafts.
+- Lab → Knowledge base → open a dish → check ingredients → Verified → Save. It then appears in every user's lexicon.
+
+**Checked**
+- Access test (`npm run db:test-rls`): 52/52 checks pass for logged-out visitor, normal user and team member.
+- Rule engine tests (`npm test`): 101/101 pass.
+
+**Decisions**
+- Ingredients live in code (`lib/ingredients.ts`) and are copied into the database by `npm run db:seed`, so the rule engine and the database never disagree.
+- Team role is set with `npm run db:team -- add <email>` (instead of an env-var allowlist).
+- Tests use Node's built-in test runner, so no extra package.
+- Max's account has the team role.
+
+**Known issues / open**
+- All 53 dishes are drafts: ingredients and certainties are first guesses from typical recipes. **The team must check and verify each one** (and extend to ~200).
+- The Ask-staff phrases must be **checked by a local Cantonese speaker** before they are marked as reviewed.
+- Some dishes link to a general Wikipedia page (e.g. "Congee", "Cantonese cuisine") because there is no page for the exact dish. Better sources are welcome.
+
 ## 2026-10-21 · Milestone 2: App shell
 
 **What works now**

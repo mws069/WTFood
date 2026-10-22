@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRightIcon, ShieldIcon } from "@/components/icons";
+import { ChevronRightIcon, FlaskIcon, ShieldIcon } from "@/components/icons";
 import { getCurrentProfile } from "@/lib/profile";
 import { restrictionByKey } from "@/lib/restrictions";
 import { s } from "@/lib/strings";
@@ -44,6 +44,14 @@ export default async function ProfilePage() {
           <p className="mt-1 break-all text-muted">{profile.email}</p>
         </div>
       </section>
+
+      {profile.role === "team" && (
+        <Link href="/lab" className="card flex min-h-12 items-center gap-3 active:scale-[0.99]">
+          <FlaskIcon className="text-brand" />
+          <span className="flex-1 font-medium">{s.lab.entry}</span>
+          <ChevronRightIcon className="text-muted" />
+        </Link>
+      )}
 
       <Link href="/privacy" className="card flex min-h-12 items-center gap-3 active:scale-[0.99]">
         <ShieldIcon className="text-brand" />

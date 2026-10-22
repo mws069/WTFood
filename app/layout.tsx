@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import { PageColumn } from "@/components/page-column";
 import { ServiceWorker } from "@/components/service-worker";
 import { s } from "@/lib/strings";
 import "./globals.css";
@@ -34,8 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${manrope.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
-        {/* Mobile-first: on desktop a centred phone-width column. */}
-        <div className="mx-auto flex w-full max-w-md flex-1 flex-col bg-page">{children}</div>
+        <PageColumn>{children}</PageColumn>
         <ServiceWorker />
       </body>
     </html>
