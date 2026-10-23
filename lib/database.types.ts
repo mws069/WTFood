@@ -339,6 +339,32 @@ export type Database = {
           },
         ]
       }
+      scan_quota: {
+        Row: {
+          count: number
+          day: string
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          day: string
+          user_id: string
+        }
+        Update: {
+          count?: number
+          day?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scan_quota_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scan_stats: {
         Row: {
           approach: string
@@ -463,6 +489,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      consume_scan: {
+        Args: { p_limit: number; p_user: string }
+        Returns: number
+      }
       is_team: { Args: never; Returns: boolean }
     }
     Enums: {
