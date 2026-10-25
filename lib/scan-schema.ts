@@ -39,10 +39,14 @@ export type ModelItem = z.infer<typeof modelItemSchema>;
 
 export type Approach = "A1" | "A2" | "A3";
 
+// low_confidence: set by approaches that use OCR (A1, A3) when the text was
+// hard to read; the rule engine then answers "Check".
+export type ScanItem = ModelItem & { low_confidence?: boolean };
+
 export type ScanResult = {
   approach: Approach;
   kind: Kind;
-  items: ModelItem[];
+  items: ScanItem[];
   latency_ms: number;
   cost_usd: number | null;
 };

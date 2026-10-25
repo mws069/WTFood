@@ -184,8 +184,11 @@ export const s = {
       failed: "We couldn't read this photo. Try again with a sharper, well-lit photo of the text.",
       onboarding: "Please finish setting up your account first.",
       network: "No connection. Please check your internet and try again.",
+      ocr_unavailable: "The text reader is waking up. Please try again in a minute.",
     },
     tryAgain: "Try again",
+    approachLabel: "Approach (team only)",
+    approaches: { A1: "A1 · OCR + dictionary", A2: "A2 · Vision model" },
   },
 
   results: {
