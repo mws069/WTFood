@@ -163,7 +163,53 @@ export const s = {
     myRestrictions: "My restrictions",
     edit: "Edit",
     tipTitle: "Tip",
-    tipText: "Soy sauce usually contains wheat, and many \"vegetable\" dishes are cooked with oyster sauce or lard.",
+    factTitle: "Did you know?",
+    actions: { scan: "Scan", lexicon: "Lexicon", ask: "Ask staff", faq: "FAQ" },
+    scanSheetTitle: "Scan a menu or label",
+    scanSheetCancel: "Cancel",
+  },
+
+  faq: {
+    title: "FAQ",
+    intro: "How WTFood works, and what to keep in mind.",
+    items: [
+      {
+        q: "How does WTFood check a menu?",
+        a: "You take a photo. An AI reads every dish on it and translates it. For dishes in our database, the ingredients come from our own entries; otherwise the AI estimates them. Then fixed rules compare the ingredients with your restrictions – the AI never decides on its own whether you can eat something.",
+      },
+      {
+        q: "What do OK, Check and Avoid mean?",
+        a: "Avoid: the dish contains something you can't eat. Check: it may contain something, or we are not sure – ask the staff. OK: we found nothing against your restrictions.",
+      },
+      {
+        q: "Can I fully trust the result?",
+        a: "No app can guarantee food safety. Recipes differ between restaurants, and we cannot see cross-contamination in the kitchen. With a serious allergy, always ask the staff – the Ask staff screen helps you do that.",
+      },
+      {
+        q: "Why are so many dishes \"Check\"?",
+        a: "Because a wrong \"OK\" is much worse than an extra \"Check\". Unclear photos, unknown dishes and ingredients that are only sometimes used all give \"Check\".",
+      },
+      {
+        q: "How does Ask staff work?",
+        a: "Type or say what you want to ask in English – WTFood shows it in Cantonese, big enough to show across the counter. The staff can answer into your phone and you read the answer in English. There are also ready-made questions for your restrictions and for each scanned dish.",
+      },
+      {
+        q: "Are my photos or recordings stored?",
+        a: "No. Photos are shrunk on your phone (removing location data), checked and then discarded. Voice recordings and translations are also discarded right away.",
+      },
+      {
+        q: "What do you store about me?",
+        a: "Your username, email address and – only with your consent – your dietary restrictions. You can change them anytime and delete your account in your profile; all your data is then removed.",
+      },
+      {
+        q: "Is there a limit?",
+        a: "Yes, to keep the app free: 30 scans and 100 translations per day.",
+      },
+      {
+        q: "Something is wrong. What can I do?",
+        a: "Tap \"Report mistake\" on the dish in your results. Our team checks every report and fixes the dish database.",
+      },
+    ],
   },
 
   scan: {
@@ -205,7 +251,10 @@ export const s = {
     showDetails: "Details",
     hideDetails: "Hide details",
     scanAgain: "Scan another photo",
-    basedOn: "Based on our dish database",
+    position: (n: number) => `Item ${n} on the photo`,
+    menuNumber: (n: string) => `No. ${n}`,
+    basedOn: "Ingredients from our dish database",
+    aiEstimate: "Not in our dish database yet – ingredients estimated by AI.",
     entryDraft: "Entry not verified yet",
     askStaff: "Ask staff",
     report: "Report mistake",
@@ -221,6 +270,43 @@ export const s = {
     chooseQuestion: "Your question",
     notReviewed: "Not yet checked by a native speaker – the wording may be a little off.",
     none: "We have no question in Chinese for your restrictions yet. Point at the dish and ask the staff in English.",
+    dishQuestions: "Questions about this dish",
+    loadDishQuestions: "Suggest questions about this dish",
+    loading: "Writing questions…",
+  },
+
+  translator: {
+    title: "Ask staff",
+    intro: "Show the staff a question in Cantonese, or let them answer into your phone.",
+    youSay: "You say",
+    youSayHint: "Type or speak in English.",
+    youPlaceholder: "e.g. Can you make it without peanuts?",
+    staffSays: "Staff answers",
+    staffSaysHint: "Tap the microphone and hand the phone to the staff. Tap again when they are done.",
+    staffPlaceholder: "Or let them type here (Chinese)",
+    record: "Speak",
+    recordStaff: "Staff speaks",
+    stop: "Stop",
+    translate: "Translate",
+    working: "Translating…",
+    showBig: "Show full screen",
+    heard: "Heard:",
+    quickPhrases: "Quick phrases",
+    forYou: "For your restrictions",
+    general: "General",
+    history: "This conversation",
+    clear: "Clear",
+    privacy: "Your voice and text are translated and then discarded. We never store them.",
+    errors: {
+      unsupported: "Recording doesn't work in this browser. Please type instead.",
+      denied: "Please allow the microphone in your browser settings, or type instead.",
+      nothing_heard: "We didn't catch that. Please try again a bit closer to the phone.",
+      limit: "You have reached today's translation limit. Please try again tomorrow.",
+      failed: "Translation failed. Please try again.",
+      invalid: "Please type or record something first.",
+      onboarding: "Please finish setting up your account first.",
+      network: "No connection. Please check your internet and try again.",
+    },
   },
 
   report: {
@@ -340,12 +426,15 @@ export const s = {
           "Your username.",
           "Your dietary restrictions and the date you agreed to us storing them. These are health-related data, so we only store them with your explicit consent.",
           "Anonymous usage numbers (for example how many items a scan found and how long it took), without your account or your photo.",
+          "Mistake reports you send (the dish, the result shown and your comment), so our team can fix the dish database. They are deleted with your account.",
+          "How many scans and translations you used today, to enforce the daily limit.",
         ],
       },
       {
         title: "What we don't store",
         text: [
           "Your menu and label photos. They are shrunk on your phone (which also removes location and camera data), checked, and then discarded.",
+          "Your voice recordings and the texts you translate in Ask staff. They are translated and then discarded.",
           "No tracking, no ads, no analytics cookies. We only use the cookie that keeps you logged in.",
         ],
       },
@@ -353,7 +442,7 @@ export const s = {
         title: "Where your data is",
         text: [
           "Accounts and restrictions are stored with Supabase in Frankfurt (EU). The app is hosted by Vercel.",
-          "To read a photo, it is sent to an AI service (OpenAI) and, later, a text-recognition service on our own server. They process it only to answer that one request; we do not store it.",
+          "To read a photo, it is sent to an AI service (OpenAI) or, for the team's comparison tests, to our own text-recognition service (Google Cloud). Translations and voice recordings in Ask staff are processed by OpenAI. They process the data only to answer that one request; we do not store it.",
         ],
       },
       {

@@ -1,17 +1,21 @@
-import { ArrowRight, Camera, ChevronRight, Lightbulb, Search } from "lucide-react";
+import { ArrowRight, Camera, ChevronRight, Lightbulb, Search, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { IconTile } from "@/components/icon-tile";
 import { RestrictionIcon } from "@/components/restriction-icon";
 import { getCurrentProfile } from "@/lib/profile";
 import { restrictionByKey } from "@/lib/restrictions";
 import { s } from "@/lib/strings";
+import { randomTip } from "@/lib/tips";
+import { HomeActions } from "./home-actions";
 
-// Home like a super-app: blue header with greeting and search; below a
-// white sheet with the one Scan card, the user's restrictions as an icon
-// grid and a tip. (Scanning is also the centre button of the tab bar.)
+// Home like a super-app: blue header with greeting, search and the icon row
+// (Scan, Lexicon, Ask staff, FAQ); below the Scan card, the user's
+// restrictions as an icon grid and a random tip or fun fact.
 export default async function HomePage() {
   const profile = await getCurrentProfile();
   const restrictions = profile.restrictions.map(restrictionByKey).filter((r) => r !== undefined);
+  // A different tip on every visit (the page is rendered per request).
+  const tip = randomTip();
 
   return (
     <main className="flex flex-col">
@@ -31,6 +35,7 @@ export default async function HomePage() {
           </button>
         </form>
 
+        <HomeActions />
       </header>
 
       <div className="-mt-5 flex flex-col gap-3 rounded-t-[22px] bg-page px-3 pt-3">
@@ -63,10 +68,10 @@ export default async function HomePage() {
         </section>
 
         <section className="card flex items-center gap-3">
-          <IconTile icon={Lightbulb} color="yellow" size="md" />
+          <IconTile icon={tip.kind === "tip" ? Lightbulb : Sparkles} color={tip.kind === "tip" ? "yellow" : "orange"} size="md" />
           <p className="text-sm">
-            <span className="font-bold">{s.home.tipTitle}: </span>
-            {s.home.tipText}
+            <span className="font-bold">{tip.kind === "tip" ? s.home.tipTitle : s.home.factTitle} </span>
+            {tip.text}
           </p>
         </section>
       </div>

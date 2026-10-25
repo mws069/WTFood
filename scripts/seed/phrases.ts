@@ -18,4 +18,11 @@ export const PHRASES: [string, string, string, string][] = [
   ["no_pork", "呢個有冇豬肉或者豬油？", "ni1 go3 jau5 mou5 zyu1 juk6 waak6 ze2 zyu1 jau4?", "Does this contain pork or lard?"],
   ["no_beef", "呢個有冇牛肉？", "ni1 go3 jau5 mou5 ngau4 juk6?", "Does this contain beef?"],
   ["no_alcohol", "呢個有冇酒？", "ni1 go3 jau5 mou5 zau2?", "Does this contain alcohol?"],
+  // For everyone, whatever the restrictions ("general").
+  ["general", "唔該，呢個有啲咩材料？", "m4 goi1, ni1 go3 jau5 di1 me1 coi4 liu2?", "Excuse me, what ingredients are in this?"],
+  ["general", "我有食物敏感。", "ngo5 jau5 sik6 mat6 man5 gam2.", "I have a food allergy."],
+  ["general", "可唔可以寫低啲材料俾我睇？", "ho2 m4 ho2 ji5 se2 dai1 di1 coi4 liu2 bei2 ngo5 tai2?", "Could you write down the ingredients for me?"],
+  ["general", "呢個辣唔辣？", "ni1 go3 laat6 m4 laat6?", "Is this spicy?"],
+  ["general", "有冇推介？", "jau5 mou5 teoi1 gaai3?", "What do you recommend?"],
+  ["general", "唔該，埋單。", "m4 goi1, maai4 daan1.", "The bill, please."],
 ];

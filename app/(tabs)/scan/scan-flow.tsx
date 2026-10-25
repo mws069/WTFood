@@ -4,6 +4,7 @@ import { Camera, Check, ImageUp, Loader2, RotateCcw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { ScanResponse } from "@/app/api/scan/route";
 import { FormMessage } from "@/components/auth-shell";
+import { takePendingPhoto } from "@/lib/pending-photo";
 import { resizeImage } from "@/lib/resize-image";
 import type { Approach, Kind } from "@/lib/scan-schema";
 import { s } from "@/lib/strings";
@@ -44,6 +45,12 @@ export function ScanFlow({
     const timers = [setTimeout(() => setStep(1), 4000), setTimeout(() => setStep(2), 12000)];
     return () => timers.forEach(clearTimeout);
   }, [stage.name]);
+
+  // A photo picked with the Scan icon on Home goes straight to the preview.
+  useEffect(() => {
+    const file = takePendingPhoto();
+    if (file) void onFile(file);
+  }, []);
 
   async function onFile(file: File | undefined) {
     if (!file) return;

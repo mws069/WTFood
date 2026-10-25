@@ -7,7 +7,7 @@ import type { Certainty } from "./verdict.ts";
 
 export type OcrLine = { text: string; confidence: number; box: [number, number, number, number] | number[] };
 export type Term = { term: string; key: string };
-export type A1Item = { text: string; confidence: number; ingredientText: string };
+export type A1Item = { text: string; confidence: number; ingredientText: string; number?: string | null };
 export type FoundIngredient = { key: string; certainty: Certainty };
 
 const CJK = /[㐀-鿿豈-﫿]/;
@@ -16,6 +16,8 @@ const PRICE = /(?:HK)?\$\s*\d+(?:\.\d+)?|\d+(?:\.\d+)?\s*(?:元|蚊|毫子)|[¥�
 const HEADER = /^(?:餐牌|菜單|菜单|價目表?|价目表?|menu|營養成分表|营养成分表|營養標籤|项目|項目|每\d+.*|nrv%?|.*參考值|.*参考值)$/i;
 // Short titles such as "茶餐廳 餐牌" or "午市菜單".
 const MENU_TITLE = /^.{0,6}(?:餐牌|菜單|菜单|價目表|价目表)$/;
+// An item number at the start of a line: "12. 叉燒包", "A3 菠蘿油", "B-05、奶茶".
+const ITEM_NUMBER = /^([A-Za-z]{0,2}-?\d{1,3}[A-Za-z]?)\s*[.、．:：)）]?\s*(?=[㐀-鿿豈-﫿])/;
 const LABEL_WORDS = /配料|成分|原料|營養|营养|ingredients|nutrition/i;
 // Rows of a nutrition table ("能量", "-飽和脂肪", "2301千焦") are never the product name.
 const NUTRITION_ROW = /^[-–\s]*(?:能量|熱量|热量|蛋白質|蛋白质|(?:飽和|饱和|反式)?脂肪|碳水化合物|糖|鈉|钠|膳食纖維|膳食纤维|NRV)(?:$|[\s(（:：\d])|^\d/i;
@@ -38,9 +40,11 @@ export function looksLikeLabel(lines: OcrLine[]) {
 export function splitMenu(lines: OcrLine[]): A1Item[] {
   const items: A1Item[] = [];
   for (const line of lines) {
-    const text = stripPrices(line.text);
+    const stripped = stripPrices(line.text);
+    const number = stripped.match(ITEM_NUMBER)?.[1] ?? null;
+    const text = number ? stripped.replace(ITEM_NUMBER, "") : stripped;
     if (!CJK.test(text) || HEADER.test(text) || MENU_TITLE.test(text)) continue;
-    items.push({ text, confidence: line.confidence, ingredientText: text });
+    items.push({ text, confidence: line.confidence, ingredientText: text, number });
   }
   return items;
 }
