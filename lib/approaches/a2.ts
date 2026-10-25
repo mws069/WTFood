@@ -40,7 +40,7 @@ Food labels and packaging:
 
 kind: "menu", "kiosk" or "label". Do not judge whether anyone can eat an item. Answer only in the required JSON format.`;
 
-function costUsd(usage: { input_tokens: number; output_tokens: number } | undefined): number | null {
+export function costUsd(usage: { input_tokens: number; output_tokens: number } | undefined): number | null {
   const inPrice = Number(process.env.LLM_PRICE_INPUT_PER_M);
   const outPrice = Number(process.env.LLM_PRICE_OUTPUT_PER_M);
   if (!usage || !inPrice || !outPrice) return null;

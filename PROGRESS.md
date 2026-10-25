@@ -2,6 +2,35 @@
 
 Updated after every milestone. Newest entry on top.
 
+## 2026-10-25 · Milestone 6: A3 hybrid, Ask staff, Report mistake
+
+**What works now**
+- **A3 – the hybrid, now the default for all users:** OCR → one item per menu line → the 3 most similar dishes of our knowledge base (character bigrams on Chinese name and aliases, threshold 0.5) → one text-only model call picks the entry that really is this dish, or none. **Ingredients always come from the chosen dish entry**, never from the model. No match → Check ("Not in our dish database – please ask staff"). Food labels: ingredient list matched against our ingredient terms.
+- Results show the entry an item is based on (Details → "Based on our dish database"), with "Entry not verified yet" for drafts.
+- **Ask staff** on every result card: full-screen card with the question in big Traditional Chinese, Jyutping and English; it starts with the restriction that caused the verdict and lets you switch to your other restrictions.
+- **Report mistake** on every result card: optional comment, stored in `feedback` (only the team can read it; inbox in the Lab follows in milestone 8).
+- Team switch on the scan screen now has A1 / A2 / A3.
+- 9 new unit tests (bigram similarity, nearest dishes, no-match reason): 128 tests in total. RLS test updated (53 checks).
+
+**How to test**
+- Scan a menu (A3 is preselected) → open "Details" on a card → "Based on our dish database". Tap "Ask staff" and "Report mistake".
+- Team: compare A1 / A2 / A3 on the same photo.
+
+**Checked**
+- Test menu with A3 (lactose, egg, no pork): 8 items, all matched to the right dish. 菠蘿油 → pineapple bun **with butter** → Avoid (A1 said OK), not confused with 菠蘿包. 17 s, 0.006 USD (A2: about 0.02 USD per photo).
+- Ask-staff card opens on "Lactose / milk" for 菠蘿油; Report mistake saved (test row deleted again).
+- Nutrition-table-only label with A3 → "Food label", Check "No ingredient list on the photo".
+
+**Decisions**
+- **Draft dishes are used by A3** (Max): only 1 of 53 dishes is verified so far. Results say "Entry not verified yet"; the quality grows as the team verifies dishes in the Lab.
+- **Users see unreviewed Ask-staff phrases** (Max), with "Not yet checked by a native speaker". Database rule changed accordingly (migration `20261025000001`).
+- A3 uses a text-only model call (no photo to the model): about 3× cheaper than A2.
+
+**Known issues / open**
+- A Cantonese speaker should review the 15 Ask-staff phrases (Lab → Knowledge base → Staff phrases → reviewed).
+- The team should verify the 52 draft dishes and add more (target about 200); every dish not in the database is "Check" in A3.
+- Feedback inbox in the Lab comes with milestone 8.
+
 ## 2026-10-25 · Milestone 5: OCR service + A1
 
 **What works now**

@@ -98,8 +98,10 @@ describe("unknown items are never ok", () => {
   test("no knowledge-base match (A3) → check", () => {
     const result = verdictFor({ ...item(["rice", "always"]), kbMatched: false }, ["peanut"]);
     assert.equal(result.verdict, "check");
-    assert.equal(result.reasons[0].text, "Unknown – please ask staff");
+    assert.equal(result.reasons[0].text, "Not in our dish database – please ask staff");
   });
+  test("low OCR confidence wins over a knowledge-base match", () =>
+    assert.equal(verdictFor({ ...item(["peanut", "always"]), kbMatched: true, lowConfidence: true }, ["peanut"]).reasons[0].text, "Unknown – please ask staff"));
   test("unknown ingredient key → check", () =>
     assert.equal(verdictFor(item(["rice", "always"], ["dragon_fruit_paste", "always"]), ["peanut"]).verdict, "check"));
   test("unknown ingredient does not hide a forbidden one", () =>

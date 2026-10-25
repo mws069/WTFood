@@ -1,6 +1,6 @@
-import { findIngredients, looksLikeLabel, splitLabel, splitMenu, type Term } from "@/lib/a1-text";
+import { findIngredients, LABEL_FALLBACK, looksLikeLabel, splitLabel, splitMenu, type A1Item, type OcrLine, type Term } from "@/lib/a1-text";
 import { ingredientByKey } from "@/lib/ingredients";
-import type { Kind, ScanResult } from "@/lib/scan-schema";
+import type { Kind, ScanItem, ScanResult } from "@/lib/scan-schema";
 import { createClient } from "@/lib/supabase/server";
 import { readText } from "./ocr";
 import { translateToEnglish } from "./translate";
@@ -11,27 +11,27 @@ import { translateToEnglish } from "./translate";
 // (certainty "listed", or "sometimes" for "may contain").
 
 // Items read with less confidence than this are "Check" (OCR_MIN_CONFIDENCE).
-function minConfidence() {
+export function minConfidence() {
   return Number(process.env.OCR_MIN_CONFIDENCE) || 0.7;
 }
 
-async function loadTerms(): Promise<Term[]> {
+export async function loadTerms(): Promise<Term[]> {
   const supabase = await createClient();
   const { data } = await supabase.from("ingredient_terms").select("term_zh, variants, ingredient_key");
   return (data ?? []).flatMap((t) => [t.term_zh, ...t.variants].map((term) => ({ term, key: t.ingredient_key })));
 }
 
-export async function runA1(image: Blob, kindHint: Kind | null): Promise<ScanResult> {
-  const started = Date.now();
-  const [lines, terms] = await Promise.all([readText(image), loadTerms()]);
+export function detectKind(lines: OcrLine[], kindHint: Kind | null): Kind {
+  return kindHint ?? (looksLikeLabel(lines) ? "label" : "menu");
+}
 
-  const kind: Kind = kindHint ?? (looksLikeLabel(lines) ? "label" : "menu");
-  const parts = kind === "label" ? splitLabel(lines) : splitMenu(lines);
+// Items with the ingredients literally written in their text. Also used by A3
+// for food labels.
+export async function dictionaryItems(parts: A1Item[], terms: Term[]): Promise<ScanItem[]> {
   const english = await translateToEnglish(parts.map((p) => p.text));
-
-  const items = parts.map((part, i) => ({
+  return parts.map((part, i) => ({
     original_text: part.text,
-    name_en: english[i] ?? part.text,
+    name_en: part.text === LABEL_FALLBACK.zh ? LABEL_FALLBACK.en : (english[i] ?? part.text),
     jyutping: null,
     description_en: null,
     recognised: true,
@@ -44,6 +44,14 @@ export async function runA1(image: Blob, kindHint: Kind | null): Promise<ScanRes
     })),
     notes: english[i] === null ? "Not translated (translation service unavailable)." : null,
   }));
+}
+
+export async function runA1(image: Blob, kindHint: Kind | null): Promise<ScanResult> {
+  const started = Date.now();
+  const [lines, terms] = await Promise.all([readText(image), loadTerms()]);
+
+  const kind = detectKind(lines, kindHint);
+  const items = await dictionaryItems(kind === "label" ? splitLabel(lines) : splitMenu(lines), terms);
 
   return { approach: "A1", kind, items, latency_ms: Date.now() - started, cost_usd: 0 };
 }
