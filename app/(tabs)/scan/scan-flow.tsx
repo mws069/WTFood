@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ScanResponse } from "@/app/api/scan/route";
 import { FormMessage } from "@/components/auth-shell";
 import { resizeImage } from "@/lib/resize-image";
-import type { Kind } from "@/lib/scan-schema";
+import type { Approach, Kind } from "@/lib/scan-schema";
 import { s } from "@/lib/strings";
 import { Results } from "./results";
 
@@ -18,8 +18,10 @@ type Stage =
 
 const KIND_OPTIONS: (Kind | null)[] = [null, "menu", "kiosk", "label"];
 
-export function ScanFlow({ initialKind, limit }: { initialKind: Kind | null; limit: number }) {
+export function ScanFlow({ initialKind, limit, isTeam }: { initialKind: Kind | null; limit: number; isTeam: boolean }) {
   const [kind, setKind] = useState<Kind | null>(initialKind);
+  // Team only: which approach to test. Normal users always get the default.
+  const [approach, setApproach] = useState<Approach>("A2");
   const [stage, setStage] = useState<Stage>({ name: "pick" });
   const [step, setStep] = useState(0);
   const cameraInput = useRef<HTMLInputElement>(null);
@@ -48,6 +50,7 @@ export function ScanFlow({ initialKind, limit }: { initialKind: Kind | null; lim
     const body = new FormData();
     body.append("image", blob, "photo.jpg");
     if (kind) body.append("kind", kind);
+    if (isTeam) body.append("approach", approach);
     try {
       const response = await fetch("/api/scan", { method: "POST", body });
       const data = (await response.json()) as ScanResponse;
@@ -92,6 +95,25 @@ export function ScanFlow({ initialKind, limit }: { initialKind: Kind | null; lim
                 className={`min-h-11 rounded-full px-4 text-sm font-semibold ${kind === k ? "bg-brand text-white" : "bg-white ring-1 ring-line"}`}
               >
                 {s.scan.kinds[k ?? "auto"]}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {isTeam && (stage.name === "pick" || stage.name === "preview") && (
+        <div>
+          <p className="label mb-2">{s.scan.approachLabel}</p>
+          <div className="flex flex-wrap gap-2">
+            {(["A1", "A2"] as Approach[]).map((a) => (
+              <button
+                key={a}
+                type="button"
+                aria-pressed={approach === a}
+                onClick={() => setApproach(a)}
+                className={`min-h-11 rounded-full px-4 text-sm font-semibold ${approach === a ? "bg-[#7158f0] text-white" : "bg-white ring-1 ring-line"}`}
+              >
+                {s.scan.approaches[a as "A1" | "A2"]}
               </button>
             ))}
           </div>

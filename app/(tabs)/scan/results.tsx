@@ -22,7 +22,10 @@ export function Results({ data, onScanAgain }: { data: Data; onScanAgain: () => 
 
   return (
     <main className="flex flex-col gap-3 px-4 pt-[calc(1.5rem+env(safe-area-inset-top))]">
-      <h1 className="text-2xl font-extrabold tracking-tight">{s.results.title}</h1>
+      <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight">
+        {s.results.title}
+        <span className="rounded-full bg-page px-2 py-0.5 text-xs font-semibold text-muted ring-1 ring-line">{data.approach}</span>
+      </h1>
 
       {data.items.length === 0 ? (
         <div className="card py-8 text-center text-muted">{s.results.empty}</div>
