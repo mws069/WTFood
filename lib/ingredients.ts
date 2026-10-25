@@ -30,6 +30,11 @@ export type Category =
 
 // `proper`: the label starts with a name and keeps its capital letter in
 // sentences ("Contains Shaoxing cooking wine").
+export const CATEGORIES: Category[] = [
+  "milk", "egg", "gluten", "peanut", "tree_nut", "soy", "sesame", "fish", "crustacean", "mollusc",
+  "meat", "pork", "beef", "lamb", "poultry", "animal_fat", "gelatin", "honey", "alcohol",
+];
+
 export type Ingredient = { key: string; label: string; categories: Category[]; proper?: true };
 
 export const INGREDIENTS: Ingredient[] = [

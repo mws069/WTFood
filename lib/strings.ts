@@ -133,6 +133,8 @@ export const s = {
     askIf: (ingredient: string, restriction: string) => `Ask if the ${ingredient} is ${restriction}`,
     unknown: "Unknown – please ask staff",
     unknownIngredient: "Unknown ingredient – please ask staff",
+    noIngredientList: "No ingredient list on the photo – check the package",
+    notVerified: (text: string) => `${text} (not verified)`,
     noIssues: "Nothing found that you can't eat",
   },
 
@@ -165,7 +167,43 @@ export const s = {
 
   scan: {
     title: "Scan",
-    text: "Menu scanning arrives in one of the next updates.",
+    intro: "Take a photo of a Chinese menu, an ordering kiosk or a food label.",
+    kindLabel: "What is it?",
+    kinds: { auto: "Detect", menu: "Menu", kiosk: "Kiosk", label: "Label" },
+    takePhoto: "Take photo",
+    choosePhoto: "Choose from photos",
+    retake: "Retake",
+    check: "Check this photo",
+    privacyNote: "Your photo is shrunk on your phone (removing location data), checked and then discarded. We never store it.",
+    steps: ["Reading the photo", "Matching dishes", "Checking your restrictions"],
+    stepsHint: "This can take up to a minute.",
+    prepareError: "This photo could not be opened. Please try another one.",
+    errors: {
+      invalid_image: "This photo could not be used. Please try a JPG or PNG photo.",
+      limit: (n: number) => `You have reached today's limit of ${n} scans. Please try again tomorrow.`,
+      failed: "We couldn't read this photo. Try again with a sharper, well-lit photo of the text.",
+      onboarding: "Please finish setting up your account first.",
+      network: "No connection. Please check your internet and try again.",
+    },
+    tryAgain: "Try again",
+  },
+
+  results: {
+    title: "Results",
+    summary: (total: number, ok: number, check: number, avoid: number) =>
+      `${total} ${total === 1 ? "item" : "items"} · ${ok} OK · ${check} Check · ${avoid} Avoid`,
+    filters: { all: "All", avoid: "Avoid", check: "Check", ok: "OK" },
+    empty: "We couldn't find any dishes on this photo. Try a closer, sharper photo of the text.",
+    noneInFilter: "No items in this group.",
+    ingredients: "Likely ingredients",
+    notVerified: "Not verified",
+    notVerifiedHint: "Not verified = named by the AI, not in our checked ingredient list.",
+    showDetails: "Details",
+    hideDetails: "Hide details",
+    scanAgain: "Scan another photo",
+    remaining: (n: number) => (n === 1 ? "1 scan left today" : `${n} scans left today`),
+    disclaimer:
+      "WTFood helps you decide, but cannot guarantee food safety. Recipes differ, and cross-contamination is not assessed. With a serious allergy, always ask the staff.",
   },
 
   lexicon: {
@@ -287,7 +325,7 @@ export const s = {
         title: "Where your data is",
         text: [
           "Accounts and restrictions are stored with Supabase in Frankfurt (EU). The app is hosted by Vercel.",
-          "To read a photo, it is sent to an AI service (Anthropic) and a text-recognition service on our own server. They process it only to answer that one request.",
+          "To read a photo, it is sent to an AI service (OpenAI) and, later, a text-recognition service on our own server. They process it only to answer that one request; we do not store it.",
         ],
       },
       {

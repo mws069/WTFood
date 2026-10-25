@@ -1,7 +1,8 @@
-import { Camera } from "lucide-react";
-import { Placeholder } from "@/components/placeholder";
-import { s } from "@/lib/strings";
+import { KINDS, type Kind } from "@/lib/scan-schema";
+import { ScanFlow } from "./scan-flow";
 
-export default function ScanPage() {
-  return <Placeholder title={s.scan.title} text={s.scan.text} icon={Camera} color="blue" />;
+export default async function ScanPage({ searchParams }: PageProps<"/scan">) {
+  const { kind } = await searchParams;
+  const initialKind = KINDS.includes(kind as Kind) ? (kind as Kind) : null;
+  return <ScanFlow initialKind={initialKind} limit={Number(process.env.SCAN_DAILY_LIMIT) || 30} />;
 }
