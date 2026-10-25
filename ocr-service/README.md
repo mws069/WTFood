@@ -1,17 +1,10 @@
----
-title: WTFood OCR
-emoji: 🔤
-colorFrom: blue
-colorTo: indigo
-sdk: docker
-app_port: 7860
-pinned: false
----
-
 # WTFood OCR service
 
 Finds the text lines in a photo of a Chinese menu, kiosk screen or food label
-(PaddleOCR, Traditional and Simplified Chinese and English). Used by the WTFood
+(Traditional and Simplified Chinese and English). Uses PaddleOCR's PP-OCRv6
+models through [RapidOCR](https://github.com/RapidAI/RapidOCR) on ONNX Runtime,
+which is about 10× faster on normal x86 servers than the Paddle engine
+(which also crashed with its fast oneDNN mode on Cloud Run). Used by the WTFood
 app for approaches A1 and A3.
 
 | Endpoint | What it does |
@@ -26,13 +19,30 @@ Photos are only processed in memory and never stored.
 | Variable | Secret? | What it is |
 |---|---|---|
 | `OCR_API_KEY` | **secret** | Requests without this key in `X-API-Key` are refused |
-| `OCR_LANG` | public | PaddleOCR language, default `chinese_cht` |
 
-## Deploy
+## Deploy: Google Cloud Run (current)
 
-**Hugging Face Spaces (current):** this folder is pushed as a Docker Space; `OCR_API_KEY` is set as a Space secret.
+Cloud Run builds the container from this folder (no local Docker needed) and
+only runs it while requests come in, so it costs almost nothing. The first
+request after a break takes 20–40 s while the container starts.
 
-**Any server with Docker** (e.g. a small VPS with 4 GB RAM):
+```bash
+gcloud run deploy wtfood-ocr \
+  --source . \
+  --region us-east4 \
+  --port 7860 \
+  --memory 2Gi --cpu 2 --cpu-boost \
+  --concurrency 1 --min-instances 0 --max-instances 2 \
+  --timeout 120 \
+  --allow-unauthenticated \
+  --set-env-vars OCR_API_KEY=…
+```
+
+`--allow-unauthenticated` only means Google does not check a login; the
+service itself refuses every request without the right `X-API-Key`.
+The app needs the service URL in `OCR_URL` and the same key in `OCR_API_KEY`.
+
+## Deploy: any server with Docker
 
 ```bash
 docker build -t wtfood-ocr .

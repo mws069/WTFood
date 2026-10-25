@@ -17,6 +17,10 @@ const HEADER = /^(?:餐牌|菜單|菜单|價目表?|价目表?|menu|營養成分
 // Short titles such as "茶餐廳 餐牌" or "午市菜單".
 const MENU_TITLE = /^.{0,6}(?:餐牌|菜單|菜单|價目表|价目表)$/;
 const LABEL_WORDS = /配料|成分|原料|營養|营养|ingredients|nutrition/i;
+// Rows of a nutrition table ("能量", "-飽和脂肪", "2301千焦") are never the product name.
+const NUTRITION_ROW = /^[-–\s]*(?:能量|熱量|热量|蛋白質|蛋白质|(?:飽和|饱和|反式)?脂肪|碳水化合物|糖|鈉|钠|膳食纖維|膳食纤维|NRV)(?:$|[\s(（:：\d])|^\d/i;
+// Name of a label item when the photo shows no product name.
+const LABEL_FALLBACK = "食品標籤";
 const INGREDIENT_START = /(?:配料表?|成分|原料|ingredients)\s*[:：]/i;
 const INGREDIENT_END = /(?:致敏|過敏|过敏|營養|营养|保存|貯存|贮存|淨重|净重|產地|产地|生產|生产|保質期|保质期|食用方法|製造|制造)/;
 const ALLERGEN_PART = /(?:致敏物質|致敏物质|過敏原|过敏原|含有|可能含有|may contain|contains)[^。;；\n]*/gi;
@@ -47,7 +51,7 @@ export function splitMenu(lines: OcrLine[]): A1Item[] {
 export function splitLabel(lines: OcrLine[]): A1Item[] {
   if (lines.length === 0) return [];
   const all = lines.map((l) => l.text).join("\n");
-  const name = lines.map((l) => stripPrices(l.text)).find((t) => CJK.test(t) && !HEADER.test(t) && !LABEL_WORDS.test(t)) ?? lines[0].text;
+  const name = lines.map((l) => stripPrices(l.text)).find((t) => CJK.test(t) && !HEADER.test(t) && !LABEL_WORDS.test(t) && !NUTRITION_ROW.test(t)) ?? LABEL_FALLBACK;
   const confidence = Math.min(...lines.map((l) => l.confidence));
 
   let ingredientText = "";

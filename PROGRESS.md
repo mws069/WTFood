@@ -2,6 +2,34 @@
 
 Updated after every milestone. Newest entry on top.
 
+## 2026-10-25 · Milestone 5: OCR service + A1
+
+**What works now**
+- **OCR service** (`ocr-service/`): Python + FastAPI + PaddleOCR's PP-OCRv6 models (Traditional/Simplified Chinese and English), run through **RapidOCR on ONNX Runtime**: 1.5–4 s per photo on Cloud Run (2 vCPU). Health check without a key, `/ocr` only with the secret key (otherwise 401). Photos are only processed in memory.
+- Runs on **Google Cloud Run** (us-east4, close to Vercel): only while someone scans, so it costs almost nothing; free trial credit, budget alert at 1 EUR per month. The first scan after a break takes 20–40 s longer while the container starts.
+- **A1 – the baseline without AI:** OCR → split into items (one per menu line; for labels the ingredient list and allergen statements) → DeepL translation → dictionary lookup in our 189 ingredient terms. Only ingredients that are literally written are found ("Listed"; "may contain" → "Sometimes"). Low OCR confidence → Check.
+- **Approach switch for the team** on the scan screen (A1 · OCR + dictionary / A2 · Vision model). Normal users don't see it and get A2.
+- The result screen shows which approach produced it.
+- Labels without a readable product name (e.g. only a nutrition table) are called "Food label" instead of a table row such as "Energy".
+- 12 new unit tests for A1 (prices, titles, labels, longest-match lookup such as 魚蛋 ≠ 蛋, 牛油 ≠ beef): 119 tests in total.
+
+**How to test (team)**
+- Scan → choose "A1 · OCR + dictionary" → photo of a menu → compare with A2 on the same photo.
+
+**Checked**
+- Test menu with A1 (peanut, vegetarian, gluten): 叉燒包 → char siu, 乾炒牛河 → beef, 蠔油菜心 → oyster sauce, 咖喱魚蛋 → fish ball (not egg). As expected for the baseline, **菠蘿油 is "OK"**: the dictionary only sees 菠蘿 (pineapple) and misses flour and butter – exactly the weakness from the proposal that A2/A3 address.
+- OCR service on Cloud Run: without key 401; nutrition label (30 lines) in 2.3–3.9 s, menu (16 lines) in 1.6 s, plus about 2 s upload and network.
+- End to end in the app (team account, A1, lactose/egg/no pork): menu → 8 items translated by DeepL ("Char Siu Buns", "Curry Fish Balls"), 叉燒包 and 豉汁蒸排骨 → Avoid (pork); nutrition-table-only label → Check "No ingredient list on the photo – check the package".
+
+**Decisions**
+- **Google Cloud Run instead of "my own web server"** (cheapest option, < 1 USD/month). Hugging Face Spaces was planned first but now requires a paid PRO plan for Docker.
+- **DeepL API Free** for A1 (1,000,000 characters per month).
+- **RapidOCR instead of the Paddle engine** (Max's OK): the Paddle engine took 16–20 s per photo on Cloud Run, because its fast oneDNN mode crashes on x86 servers in Paddle 3.3. RapidOCR runs the same PP-OCR models about 10× faster with equal quality in our tests, and the container is much smaller (faster start, less storage).
+
+**Known issues / open**
+- A1 has no Jyutping and no descriptions (by design: no AI).
+- The free Hugging Face account and token are no longer needed and can be deleted.
+
 ## 2026-10-25 · Milestone 4: Scan flow with A2
 
 **What works now**

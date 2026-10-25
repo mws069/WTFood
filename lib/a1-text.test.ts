@@ -44,6 +44,10 @@ describe("labels", () => {
   test("nutrition table only → no ingredient text", () => {
     const [item] = splitLabel([line("营养成分表"), line("能量"), line("2301千焦(kJ)")]);
     assert.equal(item.ingredientText, "");
+    assert.equal(item.text, "食品標籤");
+  });
+  test("a product name that starts like a nutrient is kept", () => {
+    assert.equal(splitLabel([line("能量"), line("糖醋排骨"), line("配料：豬肉")])[0].text, "糖醋排骨");
   });
 });
 

@@ -66,6 +66,19 @@ All tables from the brief exist, with Row Level Security on every table:
 | `LLM_PRICE_INPUT_PER_M` / `LLM_PRICE_OUTPUT_PER_M` | USD per 1M tokens, only for the cost statistics |
 | `SCAN_DAILY_LIMIT` | Scans per user per day (default 30) |
 
+## OCR service and A1
+
+- `ocr-service/` is a small Python service (FastAPI + PaddleOCR's PP-OCRv6 models via RapidOCR / ONNX Runtime) that returns the text lines of a photo in about 2–4 seconds. It runs on **Google Cloud Run** (project `wtfood-ocr-967027`, region us-east4), only while requests come in; a budget alert at 1 EUR/month is set. Deploy guide: `ocr-service/README.md`.
+- **A1** (`lib/approaches/a1.ts`, `lib/a1-text.ts`) is the baseline without any AI model: OCR → one item per menu line (prices and titles removed) or, for labels, the ingredient list and allergen statements → DeepL translation → dictionary lookup in `ingredient_terms` (longest term first, so 魚蛋 is not 蛋). Items read with low confidence (`OCR_MIN_CONFIDENCE`, default 0.7) get "Check".
+- Team members can switch between A1 and A2 on the scan screen; normal users always get the default (A2 until milestone 6).
+
+| Variable | What it is |
+|---|---|
+| `OCR_URL` | Cloud Run address of the OCR service (public) |
+| `OCR_API_KEY` | Secret key the OCR service requires (same value on Cloud Run) |
+| `OCR_MIN_CONFIDENCE` | Below this OCR confidence an item gets "Check" (default 0.7) |
+| `DEEPL_API_KEY` | DeepL API Free key for A1 translation (secret) |
+
 ## Rule engine
 
 `lib/verdict.ts` turns a dish's ingredients (each with a certainty: listed, always, usually, sometimes) into a verdict for the user's restrictions:
