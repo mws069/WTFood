@@ -2,6 +2,35 @@
 
 Updated after every milestone. Newest entry on top.
 
+## 2026-10-25 · Milestone 4: Scan flow with A2
+
+**What works now**
+- **Scan screen** (floating Scan button or "Snap a menu"): choose Detect / Menu / Kiosk / Label, take a photo or pick one, preview, then "Check this photo".
+- The photo is **shrunk on the phone** and re-encoded (removes location and camera data). It is sent to the server, checked and **never stored**.
+- **A2:** an OpenAI vision model (`gpt-6.1-sol`) reads every item, translates it (菠蘿油 → "Pineapple bun with butter", not "pineapple oil"), adds Jyutping, a short description and the likely ingredients with certainty – including hidden ones (lard, oyster sauce, soy sauce with wheat, peanut butter in French toast …).
+- The answer is checked against a fixed schema (zod); if it is invalid, the app asks once more, otherwise it shows a clear error.
+- **The rule engine decides** OK / Check / Avoid; the model never sees the user's restrictions.
+- **Processing screen** with the photo, a scanning line and three steps (Reading → Matching → Checking).
+- **Results:** summary ("7 items · 1 OK · 0 Check · 6 Avoid"), filter chips, cards sorted Avoid → Check → OK with English name, Chinese, Jyutping, description and reasons; "Details" shows the ingredients with certainty; disclaimer at the bottom.
+- **Daily limit:** 30 scans per user per day (`SCAN_DAILY_LIMIT`), counted on the server; users cannot read or change it.
+- **Scan statistics** (anonymous): approach, kind, number of items, time and cost per scan.
+
+**How to test**
+- On your phone: open the preview link → Scan → take a photo of a real Chinese menu → Check this photo. Takes about 20–30 seconds.
+
+**Checked**
+- Test menu with 7 Hong Kong dishes (profile: peanut, vegetarian, gluten): all verdicts correct; only plain rice is OK. `gpt-6.1-sol` ≈ 25 s, `gpt-6-luna` ≈ 17 s with the same verdicts but fewer hidden ingredients (e.g. French toast only "may contain peanut").
+- Daily limit: 3 allowed, the 4th refused; users cannot call or read it.
+
+**Decisions**
+- **OpenAI instead of Claude** (Max's decision): the `openai` package replaces `@anthropic-ai/sdk`. Model `gpt-6.1-sol` ($2 / $10 per 1M tokens, ≈ 3–4 cents per photo); `gpt-6-luna` is the cheap alternative to compare in the Lab. Note: like Claude, the OpenAI API is not officially offered in Hong Kong; our server in the US makes the calls.
+- Model prices are environment variables, not code (`LLM_PRICE_INPUT_PER_M`, `LLM_PRICE_OUTPUT_PER_M`).
+- Credit on the OpenAI account is prepaid without auto-recharge, so spending can never exceed the balance.
+
+**Known issues / open**
+- Ask staff and Report mistake buttons on the result cards follow in milestone 6.
+- Results are not saved (no scan history, as in the brief); reloading the page loses them.
+
 ## 2026-10-23 · UI clean-up
 
 **What changed**

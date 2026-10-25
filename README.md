@@ -51,6 +51,21 @@ All tables from the brief exist, with Row Level Security on every table:
 - Only the team writes the knowledge base and reads/writes the Lab tables, feedback and study responses.
 - Logged-out visitors can only submit the anonymous study.
 
+## Scanning (A2)
+
+1. The photo is shrunk and re-encoded as JPEG **in the browser** (`lib/resize-image.ts`), which removes EXIF/GPS data.
+2. `POST /api/scan` (`app/api/scan/route.ts`) checks login, consent and the daily limit (`SCAN_DAILY_LIMIT`, default 30, table `scan_quota`).
+3. `lib/approaches/a2.ts` sends the photo to an OpenAI vision model (`LLM_MODEL`) with structured output; the answer is validated with zod (one retry). The model only lists items and likely ingredients – it never sees the user's restrictions.
+4. The rule engine (`lib/verdict.ts`) decides OK / Check / Avoid for each item.
+5. Only anonymous numbers go to `scan_stats` (approach, kind, item count, latency, cost). **The photo is never stored.**
+
+| Variable | What it is |
+|---|---|
+| `OPENAI_API_KEY` | OpenAI key (secret, server only) |
+| `LLM_MODEL` | Model name, e.g. `gpt-6.1-sol` (cheaper: `gpt-6-luna`) |
+| `LLM_PRICE_INPUT_PER_M` / `LLM_PRICE_OUTPUT_PER_M` | USD per 1M tokens, only for the cost statistics |
+| `SCAN_DAILY_LIMIT` | Scans per user per day (default 30) |
+
 ## Rule engine
 
 `lib/verdict.ts` turns a dish's ingredients (each with a certainty: listed, always, usually, sometimes) into a verdict for the user's restrictions:
