@@ -61,9 +61,9 @@ export function verdictFor(item: VerdictInput, restrictionKeys: string[]): Verdi
   if (item.isLabel && item.ingredients.length === 0) {
     return { verdict: "check", reasons: [{ level: "check", text: s.verdict.noIngredientList }] };
   }
-  if (item.recognised === false || item.lowConfidence || item.kbMatched === false || item.ingredients.length === 0) {
-    return unknown;
-  }
+  if (item.recognised === false || item.lowConfidence) return unknown;
+  if (item.kbMatched === false) return { verdict: "check", reasons: [{ level: "check", text: s.verdict.noKbMatch }] };
+  if (item.ingredients.length === 0) return unknown;
 
   const restrictions = restrictionKeys.map(restrictionByKey).filter((r) => r !== undefined);
   const reasons: Reason[] = [];

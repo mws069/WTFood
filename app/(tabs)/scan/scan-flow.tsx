@@ -7,6 +7,7 @@ import { FormMessage } from "@/components/auth-shell";
 import { resizeImage } from "@/lib/resize-image";
 import type { Approach, Kind } from "@/lib/scan-schema";
 import { s } from "@/lib/strings";
+import type { StaffPhrase } from "./ask-staff";
 import { Results } from "./results";
 
 type Stage =
@@ -18,10 +19,20 @@ type Stage =
 
 const KIND_OPTIONS: (Kind | null)[] = [null, "menu", "kiosk", "label"];
 
-export function ScanFlow({ initialKind, limit, isTeam }: { initialKind: Kind | null; limit: number; isTeam: boolean }) {
+export function ScanFlow({
+  initialKind,
+  limit,
+  isTeam,
+  phrases,
+}: {
+  initialKind: Kind | null;
+  limit: number;
+  isTeam: boolean;
+  phrases: StaffPhrase[];
+}) {
   const [kind, setKind] = useState<Kind | null>(initialKind);
   // Team only: which approach to test. Normal users always get the default.
-  const [approach, setApproach] = useState<Approach>("A2");
+  const [approach, setApproach] = useState<Approach>("A3");
   const [stage, setStage] = useState<Stage>({ name: "pick" });
   const [step, setStep] = useState(0);
   const cameraInput = useRef<HTMLInputElement>(null);
@@ -69,7 +80,7 @@ export function ScanFlow({ initialKind, limit, isTeam }: { initialKind: Kind | n
     setStage({ name: "pick" });
   }
 
-  if (stage.name === "results") return <Results data={stage.data} onScanAgain={reset} />;
+  if (stage.name === "results") return <Results data={stage.data} phrases={phrases} onScanAgain={reset} />;
 
   return (
     <main className="flex flex-col gap-4 px-4 pt-[calc(1.5rem+env(safe-area-inset-top))]">
@@ -105,7 +116,7 @@ export function ScanFlow({ initialKind, limit, isTeam }: { initialKind: Kind | n
         <div>
           <p className="label mb-2">{s.scan.approachLabel}</p>
           <div className="flex flex-wrap gap-2">
-            {(["A1", "A2"] as Approach[]).map((a) => (
+            {(["A1", "A2", "A3"] as Approach[]).map((a) => (
               <button
                 key={a}
                 type="button"
@@ -113,7 +124,7 @@ export function ScanFlow({ initialKind, limit, isTeam }: { initialKind: Kind | n
                 onClick={() => setApproach(a)}
                 className={`min-h-11 rounded-full px-4 text-sm font-semibold ${approach === a ? "bg-[#7158f0] text-white" : "bg-white ring-1 ring-line"}`}
               >
-                {s.scan.approaches[a as "A1" | "A2"]}
+                {s.scan.approaches[a]}
               </button>
             ))}
           </div>

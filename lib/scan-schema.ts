@@ -39,9 +39,18 @@ export type ModelItem = z.infer<typeof modelItemSchema>;
 
 export type Approach = "A1" | "A2" | "A3";
 
+// A3: the knowledge-base entry an item is based on.
+export type KbDish = { dish_id: number; name_zh: string; name_en: string; verified: boolean; source_url: string | null };
+
 // low_confidence: set by approaches that use OCR (A1, A3) when the text was
 // hard to read; the rule engine then answers "Check".
-export type ScanItem = ModelItem & { low_confidence?: boolean };
+// kb_matches / kb_dish: A3 only. kb_matches are the nearest dishes found,
+// kb_dish the one the item is based on (null = no match → "Check").
+export type ScanItem = ModelItem & {
+  low_confidence?: boolean;
+  kb_matches?: { dish_id: number; similarity: number }[];
+  kb_dish?: KbDish | null;
+};
 
 export type ScanResult = {
   approach: Approach;

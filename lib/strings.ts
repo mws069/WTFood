@@ -132,6 +132,7 @@ export const s = {
     mayContain: (ingredient: string) => `May contain ${ingredient}`,
     askIf: (ingredient: string, restriction: string) => `Ask if the ${ingredient} is ${restriction}`,
     unknown: "Unknown – please ask staff",
+    noKbMatch: "Not in our dish database – please ask staff",
     unknownIngredient: "Unknown ingredient – please ask staff",
     noIngredientList: "No ingredient list on the photo – check the package",
     notVerified: (text: string) => `${text} (not verified)`,
@@ -188,7 +189,7 @@ export const s = {
     },
     tryAgain: "Try again",
     approachLabel: "Approach (team only)",
-    approaches: { A1: "A1 · OCR + dictionary", A2: "A2 · Vision model" },
+    approaches: { A1: "A1 · OCR + dictionary", A2: "A2 · Vision model", A3: "A3 · Hybrid" },
   },
 
   results: {
@@ -204,9 +205,33 @@ export const s = {
     showDetails: "Details",
     hideDetails: "Hide details",
     scanAgain: "Scan another photo",
+    basedOn: "Based on our dish database",
+    entryDraft: "Entry not verified yet",
+    askStaff: "Ask staff",
+    report: "Report mistake",
     remaining: (n: number) => (n === 1 ? "1 scan left today" : `${n} scans left today`),
     disclaimer:
       "WTFood helps you decide, but cannot guarantee food safety. Recipes differ, and cross-contamination is not assessed. With a serious allergy, always ask the staff.",
+  },
+
+  askStaff: {
+    close: "Close",
+    title: "Show this to the staff",
+    dish: "About this dish:",
+    chooseQuestion: "Your question",
+    notReviewed: "Not yet checked by a native speaker – the wording may be a little off.",
+    none: "We have no question in Chinese for your restrictions yet. Point at the dish and ask the staff in English.",
+  },
+
+  report: {
+    title: "Report a mistake",
+    intro: (item: string) => `What is wrong with "${item}"? Our team checks every report.`,
+    commentLabel: "What's wrong? (optional)",
+    commentPlaceholder: "e.g. This dish contains peanuts.",
+    send: "Send report",
+    cancel: "Cancel",
+    thanks: "Thank you! Our team will check it.",
+    error: "Couldn't send the report. Please try again.",
   },
 
   lexicon: {

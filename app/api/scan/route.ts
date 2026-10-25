@@ -1,9 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { runA1 } from "@/lib/approaches/a1";
 import { runA2, ScanFailedError } from "@/lib/approaches/a2";
+import { runA3 } from "@/lib/approaches/a3";
 import { OcrUnavailableError } from "@/lib/approaches/ocr";
 import { onboardingStep, getCurrentProfile } from "@/lib/profile";
-import { KINDS, type Approach, type Kind } from "@/lib/scan-schema";
+import { KINDS, type Approach, type KbDish, type Kind } from "@/lib/scan-schema";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ingredientByKey, type Category } from "@/lib/ingredients";
 import { verdictFor } from "@/lib/verdict";
@@ -12,8 +13,8 @@ import { verdictFor } from "@/lib/verdict";
 export const maxDuration = 120;
 
 const MAX_BYTES = 5 * 1024 * 1024;
-// A3 becomes the default in milestone 6.
-const DEFAULT_APPROACH: Approach = "A2";
+const DEFAULT_APPROACH: Approach = "A3";
+const APPROACHES: Approach[] = ["A1", "A2", "A3"];
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 export type ScanResponse =
@@ -28,8 +29,10 @@ export type ScanResponse =
         description_en: string | null;
         ingredients: { key: string; name_en: string; certainty: "listed" | "always" | "usually" | "sometimes"; verified: boolean }[];
         notes: string | null;
+        // A3 only: the knowledge-base entry the item is based on (null = no match)
+        kb_dish?: KbDish | null;
         verdict: "ok" | "check" | "avoid";
-        reasons: { level: "avoid" | "check"; text: string }[];
+        reasons: { level: "avoid" | "check"; text: string; restriction?: string }[];
       }>;
       remaining: number;
     }
@@ -65,7 +68,7 @@ export async function POST(request: NextRequest) {
   }
   // Users get the default approach; only the team may switch (for testing).
   const requested = form?.get("approach");
-  const approach: Approach = profile.role === "team" && (requested === "A1" || requested === "A2") ? requested : DEFAULT_APPROACH;
+  const approach: Approach = profile.role === "team" && APPROACHES.includes(requested as Approach) ? (requested as Approach) : DEFAULT_APPROACH;
 
   // Daily limit (configurable), counted before the model call.
   const limit = Number(process.env.SCAN_DAILY_LIMIT) || 30;
@@ -78,7 +81,9 @@ export async function POST(request: NextRequest) {
     const result =
       approach === "A1"
         ? await runA1(image, kind)
-        : await runA2(Buffer.from(await image.arrayBuffer()).toString("base64"), image.type, kind);
+        : approach === "A3"
+          ? await runA3(image, kind)
+          : await runA2(Buffer.from(await image.arrayBuffer()).toString("base64"), image.type, kind);
 
     // Anonymous statistics only: no user id, no photo, no text.
     await admin.from("scan_stats").insert({
@@ -98,7 +103,13 @@ export async function POST(request: NextRequest) {
         categories: i.categories as Category[],
       }));
       const { verdict, reasons } = verdictFor(
-        { ingredients, recognised: item.recognised, lowConfidence: item.low_confidence, isLabel: result.kind === "label" },
+        {
+          ingredients,
+          recognised: item.recognised,
+          lowConfidence: item.low_confidence,
+          kbMatched: item.kb_dish === undefined ? undefined : item.kb_dish !== null,
+          isLabel: result.kind === "label",
+        },
         profile.restrictions,
       );
       return {
@@ -118,8 +129,9 @@ export async function POST(request: NextRequest) {
           })),
         ),
         notes: item.notes,
+        kb_dish: item.kb_dish,
         verdict,
-        reasons: reasons.map((r) => ({ level: r.level, text: r.text })),
+        reasons: reasons.map((r) => ({ level: r.level, text: r.text, restriction: r.restriction })),
       };
     });
 

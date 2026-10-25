@@ -72,7 +72,9 @@ try {
   expect("reads verified dishes", userDishes.length > 0);
   expect("sees no draft dishes", userDishes.every((d) => d.status === "verified"));
   const userPhrases = (await u.from("staff_phrases").select("reviewed")).data ?? [];
-  expect("sees only reviewed phrases", userPhrases.length > 0 && userPhrases.every((p) => p.reviewed));
+  // Team decision (M6): users also see unreviewed phrases (marked in the app).
+  expect("reads staff phrases, also unreviewed", userPhrases.some((p) => p.reviewed) && userPhrases.some((p) => !p.reviewed));
+  expect("cannot edit staff phrases", blocked(await u.from("staff_phrases").update({ text_en: "hacked" }).eq("id", reviewedPhrase!.id).select()));
   expect("cannot add dishes", blocked(await u.from("dishes").insert({ name_zh: "x", name_en: "x" }).select()));
   expect("cannot edit dishes", blocked(await u.from("dishes").update({ name_en: "hacked" }).eq("id", verifiedDish!.id).select()));
   expect("cannot delete dishes", blocked(await u.from("dishes").delete().eq("id", verifiedDish!.id).select()));
