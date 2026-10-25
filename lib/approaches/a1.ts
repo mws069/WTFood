@@ -31,6 +31,7 @@ export async function dictionaryItems(parts: A1Item[], terms: Term[]): Promise<S
   const english = await translateToEnglish(parts.map((p) => p.text));
   return parts.map((part, i) => ({
     original_text: part.text,
+    menu_number: part.number ?? null,
     name_en: part.text === LABEL_FALLBACK.zh ? LABEL_FALLBACK.en : (english[i] ?? part.text),
     jyutping: null,
     description_en: null,

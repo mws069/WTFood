@@ -2,6 +2,41 @@
 
 Updated after every milestone. Newest entry on top.
 
+## 2026-10-26 · Milestone 6b: better A3, translator, Home icons
+
+**What works now**
+- **A3 rebuilt on the photo** (Max: the OCR-based A3 gave bad titles and no descriptions): the vision model reads the photo as in A2, then each dish is matched against our dish database; with a match, the ingredients come from our entry. Without one, the AI estimate stays and "Details" says so.
+- **Numbered results in menu order**, so you can count along the menu. Numbers printed on the menu are shown next to the name ("No. 12"). Every item gets a short English description.
+- **Ask staff translator** (`/ask`, Home icon, and inside the card per dish):
+  - You type or speak English → spoken Cantonese in big Traditional Chinese + Jyutping, "Show full screen" for the counter.
+  - The staff speaks or types their answer → English.
+  - Ready-made questions for your restrictions plus 6 general ones ("What ingredients are in this?", "The bill, please" …).
+  - Per dish: "Suggest questions about this dish" (e.g. 西多士: peanut butter? egg batter? lard?).
+- **Home:** white icon row under the search field (Scan · Lexicon · Ask staff · FAQ). Scan asks "Take photo" or "Choose from photos" and opens the scan screen with the photo.
+- **FAQ page** with 9 questions; **tips and fun facts** about Cantonese food change on every visit (22 so far, `lib/tips.ts`).
+- Privacy notice updated (translator, mistake reports, daily limits).
+
+**How to test**
+- Home → Scan icon → photo → results numbered 1, 2, 3 … with descriptions.
+- Home → Ask staff → type or tap "Speak"; then "Staff speaks" and let someone answer in Cantonese.
+- Results → "Ask staff" on a dish → "Suggest questions about this dish".
+
+**Checked**
+- Test menu with A3: 8 items in menu order, all with description, all matched to our database; 30 s.
+- Translator: "I can't drink milk. Can I have the milk tea with soy milk instead?" → 我飲唔到牛奶。呢杯奶茶可唔可以用豆奶代替牛奶？; staff 可以，豆奶要加五蚊。 → "Sure. Soy milk is an extra $5."
+- Speech-to-text tested on the server with English and Cantonese recordings (both recognised word for word). The microphone itself could not be tested in the desktop browser – please try on your phone.
+- 129 unit tests, lint, types.
+
+**Decisions**
+- A3 = vision model + database grounding instead of OCR + text model (Max). A1 keeps OCR.
+- Translator with OpenAI (Max): `gpt-6-luna` for translations (about 2× faster than `gpt-6.1-sol` with the same quality, much cheaper), `gpt-transcribe` for speech. Limit 100 translations per user per day.
+- Results are in menu order (numbered) instead of sorted Avoid → Check → OK; the filter chips still show only Avoid / Check / OK.
+
+**Known issues / open**
+- A3 takes about 30 s per menu photo (vision model).
+- The 21 ready-made phrases still need a check by a Cantonese speaker.
+- FAQ and tips are a first draft – the team can suggest more.
+
 ## 2026-10-25 · Milestone 6: A3 hybrid, Ask staff, Report mistake
 
 **What works now**

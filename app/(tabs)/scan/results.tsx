@@ -14,7 +14,6 @@ type Data = Extract<ScanResponse, { ok: true }>;
 type Item = Data["items"][number];
 type Filter = "all" | Verdict;
 
-const ORDER: Verdict[] = ["avoid", "check", "ok"];
 const CERTAINTY_ORDER = ["listed", "always", "usually", "sometimes"] as const;
 
 export function Results({ data, phrases, onScanAgain }: { data: Data; phrases: StaffPhrase[]; onScanAgain: () => void }) {
@@ -22,8 +21,8 @@ export function Results({ data, phrases, onScanAgain }: { data: Data; phrases: S
   // Which card opened the Ask-staff card or the report sheet.
   const [dialog, setDialog] = useState<{ type: "ask" | "report"; item: Item } | null>(null);
   const count = (v: Verdict) => data.items.filter((i) => i.verdict === v).length;
-  const sorted = [...data.items].sort((a, b) => ORDER.indexOf(a.verdict) - ORDER.indexOf(b.verdict));
-  const shown = filter === "all" ? sorted : sorted.filter((i) => i.verdict === filter);
+  // Menu order (numbered), so users can count along the menu; filters narrow it down.
+  const shown = filter === "all" ? data.items : data.items.filter((i) => i.verdict === filter);
 
   return (
     <main className="flex flex-col gap-3 px-4 pt-[calc(1.5rem+env(safe-area-inset-top))]">
@@ -61,9 +60,10 @@ export function Results({ data, phrases, onScanAgain }: { data: Data; phrases: S
             <ul className="flex flex-col gap-3">
               {shown.map((item, i) => (
                 <ResultCard
-                  key={`${item.original_text}-${i}`}
+                  key={item.position}
                   item={item}
                   index={i}
+                  showKb={data.approach === "A3" && data.kind !== "label"}
                   onAsk={() => setDialog({ type: "ask", item })}
                   onReport={() => setDialog({ type: "report", item })}
                 />
@@ -93,15 +93,35 @@ export function Results({ data, phrases, onScanAgain }: { data: Data; phrases: S
   );
 }
 
-function ResultCard({ item, index, onAsk, onReport }: { item: Item; index: number; onAsk: () => void; onReport: () => void }) {
+function ResultCard({
+  item,
+  index,
+  showKb,
+  onAsk,
+  onReport,
+}: {
+  item: Item;
+  index: number;
+  showKb: boolean;
+  onAsk: () => void;
+  onReport: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const ingredients = [...item.ingredients].sort((a, b) => CERTAINTY_ORDER.indexOf(a.certainty) - CERTAINTY_ORDER.indexOf(b.certainty));
 
   return (
     <li className="card animate-slide-up flex flex-col gap-2" style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}>
       <div className="flex items-start gap-3">
+        <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-page text-sm font-bold text-muted ring-1 ring-line" aria-label={s.results.position(item.position)}>
+          {item.position}
+        </span>
         <div className="min-w-0 flex-1">
-          <p className="font-bold leading-snug">{item.name_en}</p>
+          <p className="font-bold leading-snug">
+            {item.name_en}
+            {item.menu_number && (
+              <span className="ml-1.5 rounded-md bg-brand-light px-1.5 py-0.5 align-[2px] text-xs font-bold text-brand-dark">{s.results.menuNumber(item.menu_number)}</span>
+            )}
+          </p>
           <p className="text-sm text-muted">
             <span lang="zh-HK">{item.original_text}</span>
             {item.jyutping && ` · ${item.jyutping}`}
@@ -152,6 +172,7 @@ function ResultCard({ item, index, onAsk, onReport }: { item: Item; index: numbe
                 ))}
               </ul>
               {ingredients.some((ing) => !ing.verified) && <p className="mt-1 text-xs text-muted">{s.results.notVerifiedHint}</p>}
+              {showKb && !item.kb_dish && <p className="mt-2 border-t border-line pt-2 text-xs text-muted">{s.results.aiEstimate}</p>}
               {item.kb_dish && (
                 <div className="mt-2 border-t border-line pt-2">
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted">{s.results.basedOn}</p>

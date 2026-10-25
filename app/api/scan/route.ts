@@ -23,13 +23,15 @@ export type ScanResponse =
       approach: Approach;
       kind: Kind;
       items: Array<{
+        position: number;
+        menu_number: string | null;
         original_text: string;
         name_en: string;
         jyutping: string | null;
         description_en: string | null;
         ingredients: { key: string; name_en: string; certainty: "listed" | "always" | "usually" | "sometimes"; verified: boolean }[];
         notes: string | null;
-        // A3 only: the knowledge-base entry the item is based on (null = no match)
+        // A3 only: the knowledge-base entry the ingredients come from (null = AI estimate)
         kb_dish?: KbDish | null;
         verdict: "ok" | "check" | "avoid";
         reasons: { level: "avoid" | "check"; text: string; restriction?: string }[];
@@ -82,7 +84,7 @@ export async function POST(request: NextRequest) {
       approach === "A1"
         ? await runA1(image, kind)
         : approach === "A3"
-          ? await runA3(image, kind)
+          ? await runA3(Buffer.from(await image.arrayBuffer()).toString("base64"), image.type, kind)
           : await runA2(Buffer.from(await image.arrayBuffer()).toString("base64"), image.type, kind);
 
     // Anonymous statistics only: no user id, no photo, no text.
@@ -95,7 +97,7 @@ export async function POST(request: NextRequest) {
     });
 
     // The rule engine decides, never the model.
-    const items = result.items.map((item) => {
+    const items = result.items.map((item, index) => {
       const ingredients = item.ingredients.map((i) => ({
         key: i.key,
         certainty: i.certainty,
@@ -107,12 +109,14 @@ export async function POST(request: NextRequest) {
           ingredients,
           recognised: item.recognised,
           lowConfidence: item.low_confidence,
-          kbMatched: item.kb_dish === undefined ? undefined : item.kb_dish !== null,
           isLabel: result.kind === "label",
         },
         profile.restrictions,
       );
       return {
+        // Position on the photo (reading order), so users can count along the menu.
+        position: index + 1,
+        menu_number: item.menu_number,
         original_text: item.original_text,
         name_en: item.name_en,
         jyutping: item.jyutping,

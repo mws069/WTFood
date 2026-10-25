@@ -14,9 +14,10 @@ const ingredientKey = z.enum(["other", ...INGREDIENT_KEYS] as [string, ...string
 
 export const modelItemSchema = z.object({
   original_text: z.string().describe("The item's text exactly as written on the photo (Chinese)"),
+  menu_number: z.string().nullable().describe("The number or code printed next to the item on the menu (e.g. 12, A3), or null"),
   name_en: z.string().describe("Natural English name of the dish, not a word-by-word translation"),
   jyutping: z.string().nullable().describe("Cantonese Jyutping with tone numbers, or null if unsure"),
-  description_en: z.string().nullable().describe("One short sentence describing the dish, or null"),
+  description_en: z.string().nullable().describe("One short sentence: what the dish is and how it is made or served"),
   recognised: z.boolean().describe("false if the text is unreadable or you don't know what dish it is"),
   ingredients: z.array(
     z.object({

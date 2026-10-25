@@ -484,11 +484,44 @@ export type Database = {
           },
         ]
       }
+      usage_quota: {
+        Row: {
+          count: number
+          day: string
+          kind: string
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          day: string
+          kind: string
+          user_id: string
+        }
+        Update: {
+          count?: number
+          day?: string
+          kind?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usage_quota_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      consume_quota: {
+        Args: { p_kind: string; p_limit: number; p_user: string }
+        Returns: number
+      }
       consume_scan: {
         Args: { p_limit: number; p_user: string }
         Returns: number

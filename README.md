@@ -16,7 +16,7 @@ Live: https://wtfood.maximilian-schiller.com
 |---|---|
 | `app/welcome`, `app/signup`, `app/login`, `app/forgot-password`, `app/reset-password` | Logged-out screens |
 | `app/consent`, `app/restrictions` | Onboarding: consent for health data, then the restrictions picker (also used to edit them) |
-| `app/(tabs)` | Screens with the bottom tab bar: Home, Scan, Lexicon, Profile |
+| `app/(tabs)` | Screens with the bottom tab bar: Home, Scan, Lexicon, Ask staff, FAQ, Profile |
 | `app/privacy` | Public privacy notice |
 | `app/auth/confirm`, `app/auth/signout` | Email links and log out |
 | `app/(tabs)/lexicon` | Dish lexicon: search, dish detail with the verdict for your profile |
@@ -27,7 +27,10 @@ Live: https://wtfood.maximilian-schiller.com
 | `lib/verdict.ts` | **Rule engine**: the only place that decides OK / Check / Avoid (tests in `lib/verdict.test.ts`) |
 | `lib/approaches/` | The three approaches A1, A2, A3 plus the OCR and DeepL clients |
 | `lib/a3-match.ts` | A3 retrieval: nearest dishes by character-bigram similarity |
-| `app/(tabs)/scan` | Scan flow, results, Ask-staff card, Report-mistake sheet |
+| `app/(tabs)/scan` | Scan flow, results, Ask-staff card per dish, Report-mistake sheet |
+| `app/(tabs)/ask` | Ask staff: translator (typed or spoken, both directions) and ready-made questions |
+| `lib/translator.ts` | OpenAI calls of the translator (Cantonese, English, dish questions, speech-to-text) |
+| `lib/tips.ts` | Tips and fun facts on Home (one at random per visit) |
 | `scripts/seed/` | Seed data: Chinese ingredient terms, about 50 dishes (drafts), Ask-staff phrases |
 | `lib/validation.ts` | Form checks (zod) |
 | `lib/supabase/` | Supabase clients (browser, server, admin) and the session refresh used by `proxy.ts` |
@@ -75,11 +78,17 @@ All tables from the brief exist, with Row Level Security on every table:
 
 ### A3 – hybrid (default)
 
-`lib/approaches/a3.ts`: OCR → one item per menu line → for each item the 3 most similar dishes of the knowledge base (character bigrams on the Chinese name and aliases, `lib/a3-match.ts`, minimum `A3_MIN_SIMILARITY`, default 0.5) → one text-only model call picks the dish that really is the item (or none) and writes name and description from that entry only. **The ingredients always come from the chosen dish entry, never from the model.** No dish similar enough, or none picked → "Not in our dish database – please ask staff" (Check). Food labels: the ingredient list is matched against `ingredient_terms` (as in A1). Draft dishes are used too; the result says "Entry not verified yet".
+`lib/approaches/a3.ts`: the vision model reads the photo as in A2 (items in menu order, menu numbers, English names, a short description each). Then every menu item is matched against the dish knowledge base (character bigrams on the Chinese name and aliases, `lib/a3-match.ts`, minimum `A3_MIN_SIMILARITY`, default 0.75). **With a match, the ingredients come from our dish entry, not from the model.** Without one, the model's estimate stays and "Details" says "Not in our dish database yet – ingredients estimated by AI". Food labels keep the ingredients read from the label. Draft dishes are used too; the result says "Entry not verified yet".
+
+(The first A3 from milestone 6 used OCR + a text-only model; it found titles and descriptions badly and was replaced in milestone 6b.)
 
 ### Results
 
-Each card shows the verdict with reasons; "Details" lists the ingredients and (A3) the dish entry. **Ask staff** opens a full-screen card with a question in Traditional Chinese for the user's restrictions (table `staff_phrases`; unreviewed phrases are marked "not yet checked by a native speaker"). **Report mistake** stores a short report in `feedback` (only the team can read it).
+Items are numbered in menu order; a number printed on the menu is shown next to the name ("No. 12"). Each card shows the verdict with reasons; "Details" lists the ingredients and (A3) the dish entry. **Ask staff** opens a full-screen card for that dish: the question for the user's restrictions (table `staff_phrases`; unreviewed phrases are marked), questions written for this dish on request, and the translator. **Report mistake** stores a short report in `feedback` (only the team can read it).
+
+### Ask staff (translator)
+
+`/ask` and the card per dish: the student types or speaks English → spoken Hong Kong Cantonese (Traditional Chinese + Jyutping), shown big for the staff; the staff speaks or types their answer → English. `POST /api/translate` (`mode`: `say`, `listen`, `dish`), OpenAI for translation (`TRANSLATE_MODEL`) and speech-to-text (`TRANSCRIBE_MODEL`). Limit `TRANSLATE_DAILY_LIMIT` (default 100, table `usage_quota`). Audio and text are never stored. Ready-made phrases per restriction plus general ones (`restriction_key = 'general'`).
 
 ## OCR service and A1
 
@@ -93,7 +102,10 @@ Each card shows the verdict with reasons; "Details" lists the ingredients and (A
 | `OCR_API_KEY` | Secret key the OCR service requires (same value on Cloud Run) |
 | `OCR_MIN_CONFIDENCE` | Below this OCR confidence an item gets "Check" (default 0.7) |
 | `DEEPL_API_KEY` | DeepL API Free key for A1 translation (secret) |
-| `A3_MIN_SIMILARITY` | A3: minimum similarity for a dish match (default 0.5) |
+| `A3_MIN_SIMILARITY` | A3: minimum similarity for a dish match (default 0.75) |
+| `TRANSLATE_MODEL` | Translator model, e.g. `gpt-6-luna` (default: `LLM_MODEL`) |
+| `TRANSCRIBE_MODEL` | Speech-to-text model (default `gpt-transcribe`) |
+| `TRANSLATE_DAILY_LIMIT` | Translations per user per day (default 100) |
 
 ## Rule engine
 

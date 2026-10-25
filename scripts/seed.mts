@@ -55,16 +55,16 @@ const newDishes = DISHES.filter((d) => !known.has(d.name_zh)).map((d) => ({
 if (newDishes.length) check(await db.from("dishes").insert(newDishes), "dishes insert");
 console.log(`Dishes: ${newDishes.length} added as draft (${DISHES.length} in seed file)`);
 
-// 4. Staff phrases, not reviewed (only if the table is empty)
-const { count } = await db.from("staff_phrases").select("id", { count: "exact", head: true });
-if (!count) {
+// 4. Staff phrases, not reviewed (only the ones missing, by restriction and Chinese text)
+const { data: oldPhrases } = await db.from("staff_phrases").select("restriction_key, text_zh");
+const havePhrase = new Set((oldPhrases ?? []).map((p) => `${p.restriction_key}|${p.text_zh}`));
+const newPhrases = PHRASES.filter(([key, zh]) => !havePhrase.has(`${key}|${zh}`));
+if (newPhrases.length) {
   check(
     await db.from("staff_phrases").insert(
-      PHRASES.map(([restriction_key, text_zh, jyutping, text_en]) => ({ restriction_key, text_zh, jyutping, text_en, reviewed: false })),
+      newPhrases.map(([restriction_key, text_zh, jyutping, text_en]) => ({ restriction_key, text_zh, jyutping, text_en, reviewed: false })),
     ),
     "staff_phrases",
   );
-  console.log(`Staff phrases: ${PHRASES.length} added (not reviewed yet)`);
-} else {
-  console.log(`Staff phrases: table already has ${count}, nothing added`);
 }
+console.log(`Staff phrases: ${newPhrases.length} added (not reviewed yet)`);

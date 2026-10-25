@@ -29,6 +29,13 @@ describe("prices and menus", () => {
   });
 });
 
+describe("menu numbers", () => {
+  test("a number at the start becomes the menu number", () => {
+    const items = splitMenu([line("12. 叉燒包 $15"), line("A3 菠蘿油"), line("B-05、奶茶"), line("蠔油菜心")]);
+    assert.deepEqual(items.map((i) => [i.number, i.text]), [["12", "叉燒包"], ["A3", "菠蘿油"], ["B-05", "奶茶"], [null, "蠔油菜心"]]);
+  });
+});
+
 describe("labels", () => {
   test("detects a label", () => {
     assert.equal(looksLikeLabel([line("配料：小麥粉")]), true);
