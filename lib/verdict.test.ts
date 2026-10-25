@@ -106,6 +106,34 @@ describe("unknown items are never ok", () => {
     assert.equal(verdictFor(item(["mystery", "always"], ["peanut", "listed"]), ["peanut"]).verdict, "avoid"));
 });
 
+describe("ingredients outside our list (not verified)", () => {
+  test("free ingredient with a forbidden category → avoid, marked not verified", () => {
+    const result = verdictFor({ ingredients: [{ key: "other", name: "Whey powder", categories: ["milk"], certainty: "listed" }] }, ["lactose"]);
+    assert.equal(result.verdict, "avoid");
+    assert.equal(result.reasons[0].text, "Contains whey powder (not verified)");
+  });
+  test("free ingredient, sometimes → check", () => {
+    const result = verdictFor({ ingredients: [{ key: "other", name: "Lard", categories: ["pork", "animal_fat"], certainty: "sometimes" }] }, ["vegetarian"]);
+    assert.equal(result.verdict, "check");
+    assert.equal(result.reasons[0].text, "May contain lard (not verified)");
+  });
+  test("free ingredient without a forbidden category → ok", () => {
+    const result = verdictFor({ ingredients: [{ key: "other", name: "Palm oil", categories: [], certainty: "listed" }] }, ["peanut", "vegan"]);
+    assert.equal(result.verdict, "ok");
+  });
+  test("free ingredient without categories → check", () => {
+    assert.equal(verdictFor({ ingredients: [{ key: "other", name: "Flavouring", certainty: "listed" }] }, ["peanut"]).verdict, "check");
+  });
+  test("unreadable label without ingredients → still the label hint", () => {
+    assert.equal(verdictFor({ ingredients: [], isLabel: true, recognised: false }, ["peanut"]).reasons[0].text, "No ingredient list on the photo – check the package");
+  });
+  test("label without any ingredients → check with a label hint", () => {
+    const result = verdictFor({ ingredients: [], isLabel: true }, ["peanut"]);
+    assert.equal(result.verdict, "check");
+    assert.equal(result.reasons[0].text, "No ingredient list on the photo – check the package");
+  });
+});
+
 describe("several restrictions", () => {
   test("strongest verdict wins and avoid reasons come first", () => {
     const result = verdictFor(item(["lard", "sometimes"], ["peanut", "always"]), ["vegetarian", "peanut"]);

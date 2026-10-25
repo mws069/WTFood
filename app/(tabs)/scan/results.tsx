@@ -1,10 +1,9 @@
 "use client";
 
-import { ChevronDown, ScanLine } from "lucide-react";
+import { ChevronDown, Info, ScanLine } from "lucide-react";
 import { useState } from "react";
 import type { ScanResponse } from "@/app/api/scan/route";
 import { VerdictPill } from "@/components/verdict-pill";
-import { ingredientByKey } from "@/lib/ingredients";
 import { s } from "@/lib/strings";
 import type { Verdict } from "@/lib/verdict";
 
@@ -89,6 +88,13 @@ function ResultCard({ item, index }: { item: Item; index: number }) {
 
       {item.description_en && <p className="text-sm">{item.description_en}</p>}
 
+      {item.notes && (
+        <p className="flex gap-1.5 rounded-xl bg-brand-light px-3 py-2 text-sm text-brand-dark">
+          <Info size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+          {item.notes}
+        </p>
+      )}
+
       {item.reasons.length > 0 && (
         <ul className="flex flex-col gap-0.5 text-sm">
           {item.reasons.map((r) => (
@@ -110,12 +116,18 @@ function ResultCard({ item, index }: { item: Item; index: number }) {
               <p className="text-xs font-semibold uppercase tracking-wide text-muted">{s.results.ingredients}</p>
               <ul className="mt-1 flex flex-col divide-y divide-line text-sm">
                 {ingredients.map((ing, i) => (
-                  <li key={`${ing.key}-${i}`} className="flex justify-between gap-3 py-1.5">
-                    <span>{ingredientByKey(ing.key)?.label ?? item.notes ?? ing.key}</span>
+                  <li key={`${ing.key}-${i}`} className="flex items-center justify-between gap-3 py-1.5">
+                    <span className="flex flex-wrap items-center gap-1.5">
+                      {ing.name_en}
+                      {!ing.verified && (
+                        <span className="rounded-full bg-check/15 px-1.5 text-[11px] font-semibold text-[#b35c00]">{s.results.notVerified}</span>
+                      )}
+                    </span>
                     <span className="shrink-0 text-muted">{s.certainty[ing.certainty]}</span>
                   </li>
                 ))}
               </ul>
+              {ingredients.some((ing) => !ing.verified) && <p className="mt-1 text-xs text-muted">{s.results.notVerifiedHint}</p>}
             </div>
           )}
         </>

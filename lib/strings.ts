@@ -133,6 +133,8 @@ export const s = {
     askIf: (ingredient: string, restriction: string) => `Ask if the ${ingredient} is ${restriction}`,
     unknown: "Unknown – please ask staff",
     unknownIngredient: "Unknown ingredient – please ask staff",
+    noIngredientList: "No ingredient list on the photo – check the package",
+    notVerified: (text: string) => `${text} (not verified)`,
     noIssues: "Nothing found that you can't eat",
   },
 
@@ -194,6 +196,8 @@ export const s = {
     empty: "We couldn't find any dishes on this photo. Try a closer, sharper photo of the text.",
     noneInFilter: "No items in this group.",
     ingredients: "Likely ingredients",
+    notVerified: "Not verified",
+    notVerifiedHint: "Not verified = named by the AI, not in our checked ingredient list.",
     showDetails: "Details",
     hideDetails: "Hide details",
     scanAgain: "Scan another photo",

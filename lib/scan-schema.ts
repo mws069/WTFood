@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { INGREDIENT_KEYS } from "@/lib/ingredients";
+import { CATEGORIES, INGREDIENT_KEYS } from "@/lib/ingredients";
 
 // Shared output format of every approach (A1, A2, A3), from the brief.
 // The model must answer exactly in this shape; anything else is rejected.
@@ -7,9 +7,10 @@ import { INGREDIENT_KEYS } from "@/lib/ingredients";
 export const KINDS = ["menu", "kiosk", "label"] as const;
 export type Kind = (typeof KINDS)[number];
 
-// "unknown" lets the model report an ingredient we have no key for; the rule
-// engine turns that into "Check" instead of silently dropping it.
-const ingredientKey = z.enum(["unknown", ...INGREDIENT_KEYS] as [string, ...string[]]);
+// "other" lets the model report an ingredient we have no key for. It then
+// names it and says which categories it brings in (e.g. whey powder → milk);
+// the rule engine evaluates those and marks the reasons "not verified".
+const ingredientKey = z.enum(["other", ...INGREDIENT_KEYS] as [string, ...string[]]);
 
 export const modelItemSchema = z.object({
   original_text: z.string().describe("The item's text exactly as written on the photo (Chinese)"),
@@ -20,10 +21,12 @@ export const modelItemSchema = z.object({
   ingredients: z.array(
     z.object({
       key: ingredientKey,
+      name_en: z.string().describe("English name of the ingredient"),
+      categories: z.array(z.enum(CATEGORIES as [string, ...string[]])).describe('Only for key "other": the categories it belongs to'),
       certainty: z.enum(["listed", "always", "usually", "sometimes"]),
     }),
   ),
-  notes: z.string().nullable().describe("Short note, e.g. which ingredient 'unknown' stands for"),
+  notes: z.string().nullable().describe("Short note, e.g. that no ingredient list is visible"),
 });
 
 export const modelScanSchema = z.object({

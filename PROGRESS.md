@@ -15,6 +15,10 @@ Updated after every milestone. Newest entry on top.
 - **Daily limit:** 30 scans per user per day (`SCAN_DAILY_LIMIT`), counted on the server; users cannot read or change it.
 - **Scan statistics** (anonymous): approach, kind, number of items, time and cost per scan.
 
+- **Food labels:** the whole ingredient list (配料 / 成分) is read with certainty "Listed", allergen statements count too (含有 = listed, 可能含有 = sometimes). A photo of only a nutrition table (營養成分表) gives one item with a short nutrition summary and "Check: no ingredient list on the photo – check the package".
+- **Ingredients outside our list** (e.g. palm oil, raising agent, whey powder) are shown with a **"Not verified"** label. The model also says which categories they belong to (whey powder → milk), so the rule engine still warns, with "(not verified)" in the reason.
+- The model's notes are shown on the result card (e.g. what the allergen statement says).
+
 **How to test**
 - On your phone: open the preview link → Scan → take a photo of a real Chinese menu → Check this photo. Takes about 20–30 seconds.
 

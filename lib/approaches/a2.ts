@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
-import { INGREDIENTS } from "@/lib/ingredients";
+import { CATEGORIES, INGREDIENTS } from "@/lib/ingredients";
 import { modelScanSchema, type Kind, type ScanResult } from "@/lib/scan-schema";
 
 // A2: one call to a vision-language model with the photo. It reads the items,
@@ -22,14 +22,21 @@ For every food or drink item you can see (for a food label: the one product):
 - jyutping: Cantonese Jyutping with tone numbers if you are confident, otherwise null.
 - description_en: one short sentence, or null.
 - recognised: false if you cannot read the text or do not know what the item is.
-- ingredients: the likely ingredients, using only these keys: ${INGREDIENT_LIST}.
-  If an ingredient fits none of them, use "unknown" and name it in notes.
+- ingredients: the likely ingredients. For each one:
+  key: one of these keys if it fits: ${INGREDIENT_LIST}. Otherwise "other".
+  name_en: the ingredient's English name (always, also for known keys).
+  categories: only for "other": every category it belongs to, from: ${CATEGORIES.join(", ")} (e.g. whey powder → milk, gelatine → gelatin, palm oil → none). Use [] for known keys.
   certainty: "listed" = written on the photo (e.g. on a food label); "always" = part of every version of this dish;
   "usually" = in most Hong Kong versions; "sometimes" = in some versions.
   Include hidden ingredients that are common in Hong Kong cooking, for example lard, oyster sauce, soy sauce (contains wheat),
   shrimp paste, dried shrimp, chicken powder, cooking wine, evaporated milk, egg in batters and noodles.
   When you are unsure whether an ingredient is used, include it as "sometimes" rather than leaving it out.
 - notes: a short note if something is unclear, otherwise null.
+
+Food labels and packaging:
+- If an ingredient list is visible (配料, 成分, 原料, Ingredients), list EVERY ingredient on it with certainty "listed", in the order shown. Allergen statements (致敏物質, 含有, 可能含有, "may contain") count too: "含有" = listed, "可能含有" = sometimes.
+- If the photo only shows a nutrition table (營養成分表, 營養標籤, Nutrition Information) or packaging without an ingredient list: return ONE item for the product. name_en: the product name if visible, otherwise "Packaged food (product name not visible)". description_en: a short summary of the nutrition values per 100 g (energy, fat, saturated fat, carbohydrates, sugars, sodium). ingredients: [] (do not guess). notes: "Only a nutrition table is visible – no ingredient list."
+- Text may be Chinese, English or both.
 
 kind: "menu", "kiosk" or "label". Do not judge whether anyone can eat an item. Answer only in the required JSON format.`;
 

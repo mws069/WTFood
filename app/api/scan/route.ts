@@ -3,6 +3,7 @@ import { runA2, ScanFailedError } from "@/lib/approaches/a2";
 import { onboardingStep, getCurrentProfile } from "@/lib/profile";
 import { KINDS, type Kind } from "@/lib/scan-schema";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { ingredientByKey, type Category } from "@/lib/ingredients";
 import { verdictFor } from "@/lib/verdict";
 
 // Vision calls can take a while.
@@ -20,7 +21,7 @@ export type ScanResponse =
         name_en: string;
         jyutping: string | null;
         description_en: string | null;
-        ingredients: { key: string; certainty: "listed" | "always" | "usually" | "sometimes" }[];
+        ingredients: { key: string; name_en: string; certainty: "listed" | "always" | "usually" | "sometimes"; verified: boolean }[];
         notes: string | null;
         verdict: "ok" | "check" | "avoid";
         reasons: { level: "avoid" | "check"; text: string }[];
@@ -28,6 +29,18 @@ export type ScanResponse =
       remaining: number;
     }
   | { ok: false; error: "onboarding" | "invalid_image" | "limit" | "failed" };
+
+const CERTAINTY_RANK = ["listed", "always", "usually", "sometimes"];
+
+function dedupe<T extends { name_en: string; certainty: string }>(list: T[]): T[] {
+  const byName = new Map<string, T>();
+  for (const item of list) {
+    const key = item.name_en.toLowerCase();
+    const seen = byName.get(key);
+    if (!seen || CERTAINTY_RANK.indexOf(item.certainty) < CERTAINTY_RANK.indexOf(seen.certainty)) byName.set(key, item);
+  }
+  return [...byName.values()];
+}
 
 function fail(error: Extract<ScanResponse, { ok: false }>["error"], status: number) {
   return NextResponse.json<ScanResponse>({ ok: false, error }, { status });
@@ -68,13 +81,32 @@ export async function POST(request: NextRequest) {
 
     // The rule engine decides, never the model.
     const items = result.items.map((item) => {
-      const { verdict, reasons } = verdictFor({ ingredients: item.ingredients, recognised: item.recognised }, profile.restrictions);
+      const ingredients = item.ingredients.map((i) => ({
+        key: i.key,
+        certainty: i.certainty,
+        name: i.name_en,
+        categories: i.categories as Category[],
+      }));
+      const { verdict, reasons } = verdictFor(
+        { ingredients, recognised: item.recognised, isLabel: result.kind === "label" },
+        profile.restrictions,
+      );
       return {
         original_text: item.original_text,
         name_en: item.name_en,
         jyutping: item.jyutping,
         description_en: item.description_en,
-        ingredients: item.ingredients,
+        // verified = one of our known ingredients (categories checked by us).
+        // The same ingredient can appear twice (ingredient list + allergen
+        // statement): show it once, with its strongest certainty.
+        ingredients: dedupe(
+          item.ingredients.map((i) => ({
+            key: i.key,
+            name_en: ingredientByKey(i.key)?.label ?? i.name_en,
+            certainty: i.certainty,
+            verified: Boolean(ingredientByKey(i.key)),
+          })),
+        ),
         notes: item.notes,
         verdict,
         reasons: reasons.map((r) => ({ level: r.level, text: r.text })),
