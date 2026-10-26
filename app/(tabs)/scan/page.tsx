@@ -15,6 +15,14 @@ export default async function ScanPage({ searchParams }: PageProps<"/scan">) {
     .in("restriction_key", profile.restrictions);
   const phrases = profile.restrictions.flatMap((key) => (data ?? []).filter((p) => p.restriction_key === key).slice(0, 1));
   return (
-    <ScanFlow initialKind={initialKind} limit={Number(process.env.SCAN_DAILY_LIMIT) || 30} isTeam={profile.role === "team"} phrases={phrases} />
+    <ScanFlow
+      initialKind={initialKind}
+      limit={Number(process.env.SCAN_DAILY_LIMIT) || 30}
+      isTeam={profile.role === "team"}
+      phrases={phrases}
+      userId={profile.id}
+      restrictions={profile.restrictions}
+      hasCurrency={profile.currency !== null}
+    />
   );
 }

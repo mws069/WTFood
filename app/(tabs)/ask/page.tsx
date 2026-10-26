@@ -1,6 +1,7 @@
 import { getCurrentProfile } from "@/lib/profile";
 import { s } from "@/lib/strings";
 import { createClient } from "@/lib/supabase/server";
+import { AllergyCard } from "./allergy-card";
 import { QuickPhrases } from "./quick-phrases";
 import { Translator } from "./translator";
 
@@ -21,6 +22,7 @@ export default async function AskPage() {
         <h1 className="text-2xl font-extrabold tracking-tight">{s.translator.title}</h1>
         <p className="text-sm text-muted">{s.translator.intro}</p>
       </div>
+      <AllergyCard userId={profile.id} restrictions={profile.restrictions} />
       <Translator />
       <QuickPhrases
         groups={[

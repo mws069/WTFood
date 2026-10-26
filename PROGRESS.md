@@ -2,6 +2,38 @@
 
 Updated after every milestone. Newest entry on top.
 
+## 2026-10-26 · Milestone 6c: comfort features
+
+**What works now**
+- **Dishes appear one by one** while the photo is read (streaming): the first dish after about 15–25 s, then one every 3–4 s, instead of everything after 30–60 s.
+- **Prices** as printed (HK$) and, with a currency picked in **Profile → Currency** (about 30 currencies, e.g. USD, EUR, GBP), the approximate value: "HK$12 ≈ $1.53". Daily ECB rate, date shown under the results.
+- **Eating with friends:** "Eating with friends?" on the scan screen → pick their restrictions; every card shows e.g. "Vegan · Avoid". Only for that scan.
+- **Order helper:** "Add to order" on each dish, quantities, requests per dish (走蔥 no spring onion, 走辣 not spicy, 少油 less oil, 少甜 less sweet, 走冰 no ice, 熱/凍 hot/cold) → card "唔該，我想要：12號 叉燒包 × 2（走蔥）" for the staff.
+- **My allergy card** (Ask staff): all your restrictions in one Cantonese text, e.g. serious milk and egg allergy, no pork or lard. Kept on the phone after the first time.
+- **Last result** stays on the phone: "Last result · 8 dishes · 3 min ago" on the scan screen.
+- **Ask staff offline:** without a connection, the app opens Ask staff with the ready-made phrases and the allergy card.
+- **Open in lexicon** for dishes that are verified in our database.
+- The model no longer adds notes like "ingredients are inferred" to every dish.
+- Privacy notice: new section "On your phone only"; logout and account deletion remove everything saved on the phone.
+
+**How to test**
+- Profile → Currency → USD → scan a menu with prices.
+- Scan screen → "Eating with friends?" → Vegan → scan.
+- Results → "Add to order" on two dishes → "Show order" → requests → "Show to staff".
+- Ask staff → "My allergy card".
+- Offline: open Ask staff once online, then switch on airplane mode and open the app.
+
+**Checked**
+- 12 new unit tests (stream parser, currency, order lines, menu prices): 138 in total; lint, types.
+- Localhost with the test account: streaming (8 dishes one by one), USD prices, friends (Vegan), order card, allergy card, last result.
+- The internet connection of the test Mac was very slow during the tests (3–14 s per request), so the times above are not representative.
+- **Not tested here:** offline mode (the service worker only runs in the production build) – please try with airplane mode on your phone.
+
+**Decisions**
+- Currency per profile (Max), default "Only HK$"; rates once a day (Max).
+- Order helper only shows a card; ordering and paying stay out of scope.
+- Only the last result is kept, and only on the phone (no scan history, which the brief excludes).
+
 ## 2026-10-26 · Milestone 6b: better A3, translator, Home icons
 
 **What works now**

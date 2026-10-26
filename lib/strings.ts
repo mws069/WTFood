@@ -234,6 +234,11 @@ export const s = {
       ocr_unavailable: "The text reader is waking up. Please try again in a minute.",
     },
     tryAgain: "Try again",
+    friendsLabel: "Eating with friends?",
+    friendsHint: "Also check the dishes for their restrictions (only for this scan).",
+    lastResult: (count: number, ago: string) => `Last result · ${count} ${count === 1 ? "dish" : "dishes"} · ${ago}`,
+    ago: (minutes: number) =>
+      minutes < 1 ? "just now" : minutes < 60 ? `${minutes} min ago` : minutes < 1440 ? `${Math.floor(minutes / 60)} h ago` : `${Math.floor(minutes / 1440)} d ago`,
     approachLabel: "Approach (team only)",
     approaches: { A1: "A1 · OCR + dictionary", A2: "A2 · Vision model", A3: "A3 · Hybrid" },
   },
@@ -252,6 +257,17 @@ export const s = {
     hideDetails: "Hide details",
     scanAgain: "Scan another photo",
     position: (n: number) => `Item ${n} on the photo`,
+    streaming: "Reading more dishes…",
+    streamFailed: "The photo could not be read completely. These are the dishes found so far.",
+    rateNote: (code: string, date: string) => `Prices in ${code} are approximate (ECB rate of ${date}).`,
+    setCurrency: "Show prices in your currency: Profile → Currency.",
+    friends: "Friends",
+    openInLexicon: "Open in lexicon",
+    addToOrder: "Add to order",
+    less: "One less",
+    more: "One more",
+    orderBar: (n: number) => `Your order · ${n} ${n === 1 ? "dish" : "dishes"}`,
+    showOrder: "Show order",
     menuNumber: (n: string) => `No. ${n}`,
     basedOn: "Ingredients from our dish database",
     aiEstimate: "Not in our dish database yet – ingredients estimated by AI.",
@@ -298,6 +314,7 @@ export const s = {
     history: "This conversation",
     clear: "Clear",
     privacy: "Your voice and text are translated and then discarded. We never store them.",
+    offline: "You are offline. The ready-made phrases and your allergy card still work; translating needs a connection.",
     errors: {
       unsupported: "Recording doesn't work in this browser. Please type instead.",
       denied: "Please allow the microphone in your browser settings, or type instead.",
@@ -308,6 +325,26 @@ export const s = {
       onboarding: "Please finish setting up your account first.",
       network: "No connection. Please check your internet and try again.",
     },
+  },
+
+  order: {
+    title: "Your order",
+    intro: "Add requests per dish, then show the card to the staff.",
+    requests: "Requests",
+    show: "Show to staff",
+    clear: "Clear order",
+    cardTitle: "Show this to the staff",
+    greeting: "唔該，我想要：",
+    greetingEn: "Excuse me, I would like:",
+  },
+
+  allergyCard: {
+    button: "My allergy card",
+    buttonText: "One card in Cantonese with all your restrictions",
+    title: "My allergy card",
+    loading: "Writing your card…",
+    retry: "Try again",
+    note: "Written by AI and not yet checked by a native speaker.",
   },
 
   report: {
@@ -402,6 +439,13 @@ export const s = {
     privacy: "Privacy notice",
     back: "Profile",
     logout: "Log out",
+    currency: "Currency",
+    currencyNone: "Only HK$",
+    currencyTitle: "Currency",
+    currencyIntro: "Menu prices are in Hong Kong dollars. Pick a currency to also see the approximate value (daily ECB rate).",
+    save: "Save",
+    saved: "Saved.",
+    saveError: "Couldn't save. Please try again.",
     deleteTitle: "Delete account",
     deleteText: "This permanently removes your account and all your data, including your dietary restrictions. This cannot be undone.",
     deleteButton: "Delete my account",
@@ -411,7 +455,7 @@ export const s = {
 
   privacy: {
     title: "Privacy notice",
-    updated: "Last updated: 21 October 2026",
+    updated: "Last updated: 26 October 2026",
     back: "Back",
     sections: [
       {
@@ -429,6 +473,7 @@ export const s = {
           "Anonymous usage numbers (for example how many items a scan found and how long it took), without your account or your photo.",
           "Mistake reports you send (the dish, the result shown and your comment), so our team can fix the dish database. They are deleted with your account.",
           "How many scans and translations you used today, to enforce the daily limit.",
+          "The currency you picked for menu prices, if any.",
         ],
       },
       {
@@ -436,7 +481,14 @@ export const s = {
         text: [
           "Your menu and label photos. They are shrunk on your phone (which also removes location and camera data), checked, and then discarded.",
           "Your voice recordings and the texts you translate in Ask staff. They are translated and then discarded.",
+          "Your friends' restrictions when you check a menu for them: they are only used for that scan.",
           "No tracking, no ads, no analytics cookies. We only use the cookie that keeps you logged in.",
+        ],
+      },
+      {
+        title: "On your phone only",
+        text: [
+          "Your last scan result, your allergy card, the restrictions you picked for friends and the Ask-staff page (for use without a connection) are kept in your browser on this phone. They never leave it and are removed when you log out or delete your account.",
         ],
       },
       {

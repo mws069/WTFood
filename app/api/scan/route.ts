@@ -1,13 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { runA1 } from "@/lib/approaches/a1";
-import { runA2, ScanFailedError } from "@/lib/approaches/a2";
+import { runA2, ScanFailedError, type OnItem } from "@/lib/approaches/a2";
 import { runA3 } from "@/lib/approaches/a3";
 import { OcrUnavailableError } from "@/lib/approaches/ocr";
-import { onboardingStep, getCurrentProfile } from "@/lib/profile";
-import { KINDS, type Approach, type KbDish, type Kind } from "@/lib/scan-schema";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { hkdRate, type Rate } from "@/lib/currency";
 import { ingredientByKey, type Category } from "@/lib/ingredients";
-import { verdictFor } from "@/lib/verdict";
+import { onboardingStep, getCurrentProfile } from "@/lib/profile";
+import { RESTRICTION_KEYS } from "@/lib/restrictions";
+import { KINDS, type Approach, type KbDish, type Kind, type ScanItem } from "@/lib/scan-schema";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { verdictFor, type Verdict } from "@/lib/verdict";
 
 // Vision calls can take a while.
 export const maxDuration = 120;
@@ -17,28 +19,32 @@ const DEFAULT_APPROACH: Approach = "A3";
 const APPROACHES: Approach[] = ["A1", "A2", "A3"];
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
-export type ScanResponse =
-  | {
-      ok: true;
-      approach: Approach;
-      kind: Kind;
-      items: Array<{
-        position: number;
-        menu_number: string | null;
-        original_text: string;
-        name_en: string;
-        jyutping: string | null;
-        description_en: string | null;
-        ingredients: { key: string; name_en: string; certainty: "listed" | "always" | "usually" | "sometimes"; verified: boolean }[];
-        notes: string | null;
-        // A3 only: the knowledge-base entry the ingredients come from (null = AI estimate)
-        kb_dish?: KbDish | null;
-        verdict: "ok" | "check" | "avoid";
-        reasons: { level: "avoid" | "check"; text: string; restriction?: string }[];
-      }>;
-      remaining: number;
-    }
-  | { ok: false; error: "onboarding" | "invalid_image" | "limit" | "failed" | "ocr_unavailable" };
+export type ResultItem = {
+  position: number;
+  menu_number: string | null;
+  price: string | null;
+  original_text: string;
+  name_en: string;
+  jyutping: string | null;
+  description_en: string | null;
+  ingredients: { key: string; name_en: string; certainty: "listed" | "always" | "usually" | "sometimes"; verified: boolean }[];
+  notes: string | null;
+  // A3 only: the knowledge-base entry the ingredients come from (null = AI estimate)
+  kb_dish?: KbDish | null;
+  verdict: Verdict;
+  reasons: { level: "avoid" | "check"; text: string; restriction?: string }[];
+  // "Eating with friends": the verdict for each extra restriction picked for this scan
+  friends: { restriction: string; verdict: Verdict; reason: string | null }[];
+};
+
+// Errors before the scan starts come as JSON with a status code. A started
+// scan is a stream of JSON lines (application/x-ndjson): one "item" event per
+// dish as soon as it is ready, then "done" (or "error").
+export type ScanError = "onboarding" | "invalid_image" | "limit" | "failed" | "ocr_unavailable";
+export type ScanEvent =
+  | { type: "item"; item: ResultItem }
+  | { type: "done"; approach: Approach; kind: Kind; remaining: number; rate: Rate | null }
+  | { type: "error"; error: ScanError };
 
 const CERTAINTY_RANK = ["listed", "always", "usually", "sometimes"];
 
@@ -52,8 +58,48 @@ function dedupe<T extends { name_en: string; certainty: string }>(list: T[]): T[
   return [...byName.values()];
 }
 
-function fail(error: Extract<ScanResponse, { ok: false }>["error"], status: number) {
-  return NextResponse.json<ScanResponse>({ ok: false, error }, { status });
+// The rule engine decides, never the model.
+function toResultItem(item: ScanItem, position: number, kind: Kind, restrictions: string[], friends: string[]): ResultItem {
+  const input = {
+    ingredients: item.ingredients.map((i) => ({ key: i.key, certainty: i.certainty, name: i.name_en, categories: i.categories as Category[] })),
+    recognised: item.recognised,
+    lowConfidence: item.low_confidence,
+    isLabel: kind === "label",
+  };
+  const { verdict, reasons } = verdictFor(input, restrictions);
+  return {
+    // Position on the photo (reading order), so users can count along the menu.
+    position,
+    menu_number: item.menu_number,
+    price: item.price,
+    original_text: item.original_text,
+    name_en: item.name_en,
+    jyutping: item.jyutping,
+    description_en: item.description_en,
+    // verified = one of our known ingredients (categories checked by us).
+    // The same ingredient can appear twice (ingredient list + allergen
+    // statement): show it once, with its strongest certainty.
+    ingredients: dedupe(
+      item.ingredients.map((i) => ({
+        key: i.key,
+        name_en: ingredientByKey(i.key)?.label ?? i.name_en,
+        certainty: i.certainty,
+        verified: Boolean(ingredientByKey(i.key)),
+      })),
+    ),
+    notes: item.notes,
+    kb_dish: item.kb_dish,
+    verdict,
+    reasons: reasons.map((r) => ({ level: r.level, text: r.text, restriction: r.restriction })),
+    friends: friends.map((restriction) => {
+      const result = verdictFor(input, [restriction]);
+      return { restriction, verdict: result.verdict, reason: result.reasons[0]?.text ?? null };
+    }),
+  };
+}
+
+function fail(error: ScanError, status: number) {
+  return NextResponse.json({ ok: false, error }, { status });
 }
 
 // The photo is only held in memory for this request: it is never stored.
@@ -71,6 +117,10 @@ export async function POST(request: NextRequest) {
   // Users get the default approach; only the team may switch (for testing).
   const requested = form?.get("approach");
   const approach: Approach = profile.role === "team" && APPROACHES.includes(requested as Approach) ? (requested as Approach) : DEFAULT_APPROACH;
+  // Friends' restrictions for this scan only (never stored).
+  const friends = String(form?.get("friends") ?? "")
+    .split(",")
+    .filter((key) => RESTRICTION_KEYS.includes(key) && !profile.restrictions.includes(key));
 
   // Daily limit (configurable), counted before the model call.
   const limit = Number(process.env.SCAN_DAILY_LIMIT) || 30;
@@ -79,73 +129,49 @@ export async function POST(request: NextRequest) {
   if (quotaError) return fail("failed", 500);
   if (used === -1) return fail("limit", 429);
 
-  try {
-    const result =
-      approach === "A1"
-        ? await runA1(image, kind)
-        : approach === "A3"
-          ? await runA3(Buffer.from(await image.arrayBuffer()).toString("base64"), image.type, kind)
-          : await runA2(Buffer.from(await image.arrayBuffer()).toString("base64"), image.type, kind);
+  // Started here, inside the request (fetch caching needs it), awaited in the stream.
+  const ratePromise = profile.currency ? hkdRate(profile.currency) : Promise.resolve(null);
 
-    // Anonymous statistics only: no user id, no photo, no text.
-    await admin.from("scan_stats").insert({
-      approach: result.approach,
-      kind: result.kind,
-      item_count: result.items.length,
-      latency_ms: result.latency_ms,
-      cost_usd: result.cost_usd,
-    });
+  // The response goes out at once; the scan runs on and writes into it.
+  const encoder = new TextEncoder();
+  const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
+  const writer = writable.getWriter();
+  void (async () => {
+    // A closed app ends the stream; the scan then simply finishes unseen.
+    const send = (event: ScanEvent) => void writer.write(encoder.encode(JSON.stringify(event) + "\n")).catch(() => {});
+    let position = 0;
+    const onItem: OnItem = (item, itemKind) => send({ type: "item", item: toResultItem(item, ++position, itemKind, profile.restrictions, friends) });
 
-    // The rule engine decides, never the model.
-    const items = result.items.map((item, index) => {
-      const ingredients = item.ingredients.map((i) => ({
-        key: i.key,
-        certainty: i.certainty,
-        name: i.name_en,
-        categories: i.categories as Category[],
-      }));
-      const { verdict, reasons } = verdictFor(
-        {
-          ingredients,
-          recognised: item.recognised,
-          lowConfidence: item.low_confidence,
-          isLabel: result.kind === "label",
-        },
-        profile.restrictions,
-      );
-      return {
-        // Position on the photo (reading order), so users can count along the menu.
-        position: index + 1,
-        menu_number: item.menu_number,
-        original_text: item.original_text,
-        name_en: item.name_en,
-        jyutping: item.jyutping,
-        description_en: item.description_en,
-        // verified = one of our known ingredients (categories checked by us).
-        // The same ingredient can appear twice (ingredient list + allergen
-        // statement): show it once, with its strongest certainty.
-        ingredients: dedupe(
-          item.ingredients.map((i) => ({
-            key: i.key,
-            name_en: ingredientByKey(i.key)?.label ?? i.name_en,
-            certainty: i.certainty,
-            verified: Boolean(ingredientByKey(i.key)),
-          })),
-        ),
-        notes: item.notes,
-        kb_dish: item.kb_dish,
-        verdict,
-        reasons: reasons.map((r) => ({ level: r.level, text: r.text, restriction: r.restriction })),
-      };
-    });
+    try {
+      const base64 = approach === "A1" ? "" : Buffer.from(await image.arrayBuffer()).toString("base64");
+      const [result, rate] = await Promise.all([
+        approach === "A1"
+          ? runA1(image, kind)
+          : approach === "A3"
+            ? runA3(base64, image.type, kind, onItem)
+            : runA2(base64, image.type, kind, onItem),
+        ratePromise,
+      ]);
+      // A1 has no stream: all its items come at the end.
+      if (approach === "A1") result.items.forEach((item) => onItem(item, result.kind));
 
-    return NextResponse.json<ScanResponse>({ ok: true, approach: result.approach, kind: result.kind, items, remaining: Math.max(0, limit - used) });
-  } catch (error) {
-    if (error instanceof OcrUnavailableError) {
-      console.error("ocr unavailable", error.message);
-      return fail("ocr_unavailable", 503);
+      // Anonymous statistics only: no user id, no photo, no text.
+      await admin.from("scan_stats").insert({
+        approach: result.approach,
+        kind: result.kind,
+        item_count: result.items.length,
+        latency_ms: result.latency_ms,
+        cost_usd: result.cost_usd,
+      });
+      send({ type: "done", approach: result.approach, kind: result.kind, remaining: Math.max(0, limit - used), rate });
+    } catch (error) {
+      if (error instanceof OcrUnavailableError) console.error("ocr unavailable", error.message);
+      else if (!(error instanceof ScanFailedError)) console.error("scan failed", error);
+      send({ type: "error", error: error instanceof OcrUnavailableError ? "ocr_unavailable" : "failed" });
+    } finally {
+      await writer.close().catch(() => {});
     }
-    if (!(error instanceof ScanFailedError)) console.error("scan failed", error);
-    return fail("failed", 502);
-  }
+  })();
+
+  return new Response(readable, { headers: { "Content-Type": "application/x-ndjson; charset=utf-8", "Cache-Control": "no-store" } });
 }

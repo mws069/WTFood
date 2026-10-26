@@ -32,6 +32,7 @@ export async function dictionaryItems(parts: A1Item[], terms: Term[]): Promise<S
   return parts.map((part, i) => ({
     original_text: part.text,
     menu_number: part.number ?? null,
+    price: part.price ?? null,
     name_en: part.text === LABEL_FALLBACK.zh ? LABEL_FALLBACK.en : (english[i] ?? part.text),
     jyutping: null,
     description_en: null,

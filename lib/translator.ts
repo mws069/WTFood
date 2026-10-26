@@ -84,6 +84,16 @@ const EXTENSIONS: Record<string, string> = {
   "audio/wav": "wav",
 };
 
+// One card with all of the user's restrictions, to show in any restaurant.
+export function allergyCard(restrictions: { label: string; group: string; forbids: string[] }[]) {
+  return ask(
+    `Write a short, polite card a foreign student shows to Hong Kong restaurant staff, in spoken Hong Kong Cantonese (Traditional Chinese, colloquial) with Jyutping, and the same text in English as text_en. Say clearly what the student cannot eat, based on the restrictions given. For allergies, say it is a serious allergy and that even small amounts and sauces or oils made from it are a problem. For diets and religious restrictions, list what must not be in the food, including hidden ingredients common in Hong Kong (lard, oyster sauce, fish sauce, shrimp paste, cooking wine, chicken stock) where they matter. End by asking the staff to tell the student if a dish contains any of it. At most 5 short sentences.`,
+    JSON.stringify(restrictions),
+    cantoneseSchema.extend({ text_en: z.string().describe("The same card in English") }),
+    "allergy_card",
+  );
+}
+
 // Speech → text. "en" for the student, "staff" for Cantonese/Mandarin answers.
 export async function transcribe(audio: Blob, speaker: "en" | "staff") {
   const type = audio.type.split(";")[0];

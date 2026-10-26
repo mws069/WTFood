@@ -235,6 +235,7 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          currency: string | null
           health_consent_at: string | null
           id: string
           restrictions: string[]
@@ -243,6 +244,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          currency?: string | null
           health_consent_at?: string | null
           id: string
           restrictions?: string[]
@@ -251,6 +253,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          currency?: string | null
           health_consent_at?: string | null
           id?: string
           restrictions?: string[]
