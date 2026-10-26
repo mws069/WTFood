@@ -68,31 +68,39 @@ export function Translator() {
           placeholder={s.translator.youPlaceholder}
           className="input min-h-20 py-3"
         />
-        <div className="flex gap-2">
-          <RecordButton recording={you.recording} disabled={busy !== null || staff.recording} onClick={you.toggle} label={s.translator.record} />
-          <button
-            type="button"
-            onClick={() => send("say", { text: youText })}
-            disabled={!youText.trim() || busy !== null}
-            className="btn-primary flex-1"
-          >
-            {busy === "say" ? <Loader2 size={18} className="animate-spin" /> : <Languages size={18} />}
-            {busy === "say" ? s.translator.working : s.translator.translate}
-          </button>
-        </div>
+        {you.recording ? (
+          <RecordingBar levels={you.levels} seconds={you.seconds} onStop={you.toggle} />
+        ) : (
+          <div className="flex gap-2">
+            <RecordButton recording={false} disabled={busy !== null || staff.recording} onClick={you.toggle} label={s.translator.record} />
+            <button
+              type="button"
+              onClick={() => send("say", { text: youText })}
+              disabled={!youText.trim() || busy !== null}
+              className="btn-primary flex-1"
+            >
+              {busy === "say" ? <Loader2 size={18} className="animate-spin" /> : <Languages size={18} />}
+              {busy === "say" ? s.translator.working : s.translator.translate}
+            </button>
+          </div>
+        )}
       </section>
 
       <section className="card flex flex-col gap-2">
         <h2 className="text-[17px] font-bold">{s.translator.staffSays}</h2>
         <p className="text-sm text-muted">{s.translator.staffSaysHint}</p>
-        <RecordButton
-          recording={staff.recording}
-          disabled={busy !== null || you.recording}
-          onClick={staff.toggle}
-          label={busy === "listen" ? s.translator.working : s.translator.recordStaff}
-          busy={busy === "listen"}
-          wide
-        />
+        {staff.recording ? (
+          <RecordingBar levels={staff.levels} seconds={staff.seconds} onStop={staff.toggle} />
+        ) : (
+          <RecordButton
+            recording={false}
+            disabled={busy !== null || you.recording}
+            onClick={staff.toggle}
+            label={busy === "listen" ? s.translator.working : s.translator.recordStaff}
+            busy={busy === "listen"}
+            wide
+          />
+        )}
         <div className="flex gap-2">
           <label htmlFor="staff-text" className="sr-only">
             {s.translator.staffPlaceholder}
@@ -159,6 +167,30 @@ export function Translator() {
           <PhraseBig phrase={big} />
         </FullScreen>
       )}
+    </div>
+  );
+}
+
+// Shown while recording: red dot and time, the loudness as moving bars, Stop.
+function RecordingBar({ levels, seconds, onStop }: { levels: number[]; seconds: number; onStop: () => void }) {
+  return (
+    <div className="flex min-h-12 items-center gap-3 rounded-full bg-avoid/10 py-1.5 pr-1.5 pl-4" role="status" aria-label={s.translator.recording}>
+      <span className="size-2.5 shrink-0 animate-pulse rounded-full bg-avoid" aria-hidden="true" />
+      <span className="w-9 shrink-0 text-sm font-semibold tabular-nums text-[#c4142a]">
+        {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, "0")}
+      </span>
+      <span className="flex h-8 min-w-0 flex-1 items-center justify-end gap-[2px] overflow-hidden" aria-hidden="true">
+        {levels.map((level, i) => (
+          <span
+            key={i}
+            className="w-[3px] shrink-0 rounded-full bg-avoid transition-[height] duration-75"
+            style={{ height: `${Math.max(3, Math.round(level * 32))}px`, opacity: 0.35 + 0.65 * ((i + 1) / levels.length) }}
+          />
+        ))}
+      </span>
+      <button type="button" onClick={onStop} className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full bg-avoid px-4 text-sm font-semibold text-white">
+        <Square size={14} fill="currentColor" /> {s.translator.stop}
+      </button>
     </div>
   );
 }
