@@ -31,6 +31,10 @@ Live: https://wtfood.maximilian-schiller.com
 | `app/(tabs)/ask` | Ask staff: translator (typed or spoken, both directions) and ready-made questions |
 | `lib/translator.ts` | OpenAI calls of the translator (Cantonese, English, dish questions, speech-to-text) |
 | `lib/tips.ts` | Tips and fun facts on Home (one at random per visit) |
+| `lib/item-stream.ts` | Reads the model's JSON while it is written, so dishes appear one by one |
+| `lib/order.ts` | Order helper: picked dishes as lines in Chinese for the staff |
+| `lib/currency.ts` | Price conversion from HK$ into the user's currency (daily ECB rate) |
+| `public/sw.js` | Service worker: installable app, Ask staff without a connection |
 | `scripts/seed/` | Seed data: Chinese ingredient terms, about 50 dishes (drafts), Ask-staff phrases |
 | `lib/validation.ts` | Form checks (zod) |
 | `lib/supabase/` | Supabase clients (browser, server, admin) and the session refresh used by `proxy.ts` |
@@ -84,11 +88,20 @@ All tables from the brief exist, with Row Level Security on every table:
 
 ### Results
 
+The answer is **streamed**: `POST /api/scan` returns JSON lines (`application/x-ndjson`), one `item` event per dish as soon as the model has finished it, then `done` (or `error`). Errors before the scan starts (login, limit, photo) are normal JSON with a status code.
+
 Items are numbered in menu order; a number printed on the menu is shown next to the name ("No. 12"). Each card shows the verdict with reasons; "Details" lists the ingredients and (A3) the dish entry. **Ask staff** opens a full-screen card for that dish: the question for the user's restrictions (table `staff_phrases`; unreviewed phrases are marked), questions written for this dish on request, and the translator. **Report mistake** stores a short report in `feedback` (only the team can read it).
+
+More on the results screen:
+- **Prices:** shown in HK$ and, if the user picked a currency (Profile → Currency, about 30 currencies), approximately in that currency. Rates: European Central Bank via frankfurter.dev (free, no key), loaded once a day; the date of the rate is shown.
+- **Eating with friends:** before scanning, extra restrictions can be picked ("Vegan", "Halal" …). They are only used for that scan; each card shows the verdict per friend restriction.
+- **Order helper:** "Add to order" on each dish, quantity and requests (走蔥 no spring onion, 少油 less oil, 凍 cold …), then a big card in Chinese for the staff. Nothing is ordered or paid in the app.
+- **Last result** stays on the phone (localStorage) and can be reopened from the scan screen. Removed on logout and account deletion.
+- **Lexicon link** on dishes that are verified in the database.
 
 ### Ask staff (translator)
 
-`/ask` and the card per dish: the student types or speaks English → spoken Hong Kong Cantonese (Traditional Chinese + Jyutping), shown big for the staff; the staff speaks or types their answer → English. `POST /api/translate` (`mode`: `say`, `listen`, `dish`), OpenAI for translation (`TRANSLATE_MODEL`) and speech-to-text (`TRANSCRIBE_MODEL`). Limit `TRANSLATE_DAILY_LIMIT` (default 100, table `usage_quota`). Audio and text are never stored. Ready-made phrases per restriction plus general ones (`restriction_key = 'general'`).
+`/ask` and the card per dish: the student types or speaks English → spoken Hong Kong Cantonese (Traditional Chinese + Jyutping), shown big for the staff; the staff speaks or types their answer → English. `POST /api/translate` (`mode`: `say`, `listen`, `dish`), OpenAI for translation (`TRANSLATE_MODEL`) and speech-to-text (`TRANSCRIBE_MODEL`). Limit `TRANSLATE_DAILY_LIMIT` (default 100, table `usage_quota`). Audio and text are never stored. Ready-made phrases per restriction plus general ones (`restriction_key = 'general'`). **My allergy card**: one text in Cantonese with all of the user's restrictions (`mode: card`), written once and then kept on the phone. **Offline:** the service worker keeps the Ask-staff page and the app's static files; without a connection every page opens Ask staff (ready-made phrases and the allergy card work, translating needs a connection).
 
 ## OCR service and A1
 

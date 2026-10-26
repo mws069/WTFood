@@ -7,7 +7,7 @@ import type { Certainty } from "./verdict.ts";
 
 export type OcrLine = { text: string; confidence: number; box: [number, number, number, number] | number[] };
 export type Term = { term: string; key: string };
-export type A1Item = { text: string; confidence: number; ingredientText: string; number?: string | null };
+export type A1Item = { text: string; confidence: number; ingredientText: string; number?: string | null; price?: string | null };
 export type FoundIngredient = { key: string; certainty: Certainty };
 
 const CJK = /[㐀-鿿豈-﫿]/;
@@ -44,7 +44,8 @@ export function splitMenu(lines: OcrLine[]): A1Item[] {
     const number = stripped.match(ITEM_NUMBER)?.[1] ?? null;
     const text = number ? stripped.replace(ITEM_NUMBER, "") : stripped;
     if (!CJK.test(text) || HEADER.test(text) || MENU_TITLE.test(text)) continue;
-    items.push({ text, confidence: line.confidence, ingredientText: text, number });
+    const price = line.text.match(new RegExp(PRICE.source))?.[0].trim() ?? null;
+    items.push({ text, confidence: line.confidence, ingredientText: text, number, price });
   }
   return items;
 }

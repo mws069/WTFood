@@ -1,9 +1,10 @@
-import { FlaskConical, Salad, ShieldCheck, UserRound } from "lucide-react";
+import { Banknote, FlaskConical, Salad, ShieldCheck, UserRound } from "lucide-react";
 import { IconTile } from "@/components/icon-tile";
 import { RestrictionIcon } from "@/components/restriction-icon";
 import { SettingsGroup, SettingsRow } from "@/components/settings-row";
 import { getCurrentProfile } from "@/lib/profile";
 import { s } from "@/lib/strings";
+import { LogoutButton } from "./logout-button";
 
 // Profile as a grouped settings list.
 export default async function ProfilePage() {
@@ -31,6 +32,7 @@ export default async function ProfilePage() {
       <SettingsGroup>
         <SettingsRow href="/restrictions" icon={Salad} color="green" label={s.profile.restrictions} value={s.profile.selected(profile.restrictions.length)} />
         <SettingsRow href="/profile/account" icon={UserRound} color="orange" label={s.profile.account} value={profile.username ? `@${profile.username}` : undefined} />
+        <SettingsRow href="/profile/currency" icon={Banknote} color="teal" label={s.profile.currency} value={profile.currency ?? s.profile.currencyNone} />
       </SettingsGroup>
 
       <SettingsGroup>
@@ -38,11 +40,7 @@ export default async function ProfilePage() {
         <SettingsRow href="/privacy" icon={ShieldCheck} color="blue" label={s.profile.privacy} />
       </SettingsGroup>
 
-      <form action="/auth/signout" method="post">
-        <button type="submit" className="min-h-14 w-full rounded-card bg-white text-[16px] font-medium active:bg-page">
-          {s.profile.logout}
-        </button>
-      </form>
+      <LogoutButton />
     </main>
   );
 }

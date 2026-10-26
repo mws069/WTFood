@@ -19,11 +19,11 @@ export function PhraseBig({ phrase, size = "lg" }: { phrase: Phrase; size?: "md"
   );
 }
 
-export function NotReviewedNote() {
+export function NotReviewedNote({ text = s.askStaff.notReviewed }: { text?: string }) {
   return (
     <p className="flex gap-1.5 rounded-xl bg-check/15 px-3 py-2 text-sm text-[#b35c00]">
       <Info size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
-      {s.askStaff.notReviewed}
+      {text}
     </p>
   );
 }

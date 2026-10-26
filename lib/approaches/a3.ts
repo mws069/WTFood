@@ -3,7 +3,7 @@ import { parseIngredients } from "@/lib/dishes";
 import { ingredientByKey } from "@/lib/ingredients";
 import type { Kind, ScanItem, ScanResult } from "@/lib/scan-schema";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { readPhoto } from "./a2";
+import { readPhoto, type OnItem } from "./a2";
 
 // A3 – the hybrid (default for users):
 // 1. The vision model reads the photo as in A2: items in menu order, menu
@@ -67,9 +67,12 @@ function ground(item: ScanItem, dishes: Dish[]): ScanItem {
   };
 }
 
-export async function runA3(imageBase64: string, mediaType: string, kindHint: Kind | null): Promise<ScanResult> {
+export async function runA3(imageBase64: string, mediaType: string, kindHint: Kind | null, onItem?: OnItem): Promise<ScanResult> {
   const started = Date.now();
-  const [read, dishes] = await Promise.all([readPhoto(imageBase64, mediaType, kindHint), loadDishes()]);
-  const items = read.kind === "label" ? read.items : read.items.map((item) => ground(item, dishes));
+  // The dishes first (a quick query), so every streamed item can be grounded at once.
+  const dishes = await loadDishes();
+  const groundFor = (item: ScanItem, kind: Kind) => (kind === "label" ? item : ground(item, dishes));
+  const read = await readPhoto(imageBase64, mediaType, kindHint, onItem && ((item, kind) => onItem(groundFor(item, kind), kind)));
+  const items = read.items.map((item) => groundFor(item, read.kind));
   return { approach: "A3", kind: read.kind, items, cost_usd: read.cost_usd, latency_ms: Date.now() - started };
 }

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { FormMessage } from "@/components/auth-shell";
+import { clearDeviceData } from "@/lib/offline";
 import { s } from "@/lib/strings";
 import { deleteAccount } from "../actions";
 
@@ -27,6 +28,7 @@ export function DeleteAccount() {
             disabled={pending}
             onClick={() =>
               startTransition(async () => {
+                await clearDeviceData();
                 const result = await deleteAccount();
                 if (result?.error) setError(true);
               })

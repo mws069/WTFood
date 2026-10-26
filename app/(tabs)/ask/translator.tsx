@@ -1,7 +1,7 @@
 "use client";
 
-import { Languages, Loader2, Maximize2, Mic, Square } from "lucide-react";
-import { useState } from "react";
+import { Languages, Loader2, Maximize2, Mic, Square, WifiOff } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { TranslateResponse } from "@/app/api/translate/route";
 import { FormMessage } from "@/components/auth-shell";
 import { s } from "@/lib/strings";
@@ -21,6 +21,7 @@ export function Translator() {
   const [error, setError] = useState<ErrorKey | null>(null);
   const [entries, setEntries] = useState<Entry[]>([]);
   const [big, setBig] = useState<Phrase | null>(null);
+  const online = useOnline();
 
   async function send(mode: "say" | "listen", input: { text?: string; audio?: Blob }) {
     setBusy(mode);
@@ -53,6 +54,12 @@ export function Translator() {
 
   return (
     <div className="flex flex-col gap-3">
+      {!online && (
+        <p className="flex gap-1.5 rounded-xl bg-check/15 px-3 py-2 text-sm text-[#b35c00]" role="status">
+          <WifiOff size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+          {s.translator.offline}
+        </p>
+      )}
       <section className="card flex flex-col gap-2">
         <h2 className="text-[17px] font-bold">{s.translator.youSay}</h2>
         <p className="text-sm text-muted">{s.translator.youSayHint}</p>
@@ -169,6 +176,21 @@ export function Translator() {
       )}
     </div>
   );
+}
+
+function useOnline() {
+  const [online, setOnline] = useState(true);
+  useEffect(() => {
+    const update = () => setOnline(navigator.onLine);
+    update();
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
+    return () => {
+      window.removeEventListener("online", update);
+      window.removeEventListener("offline", update);
+    };
+  }, []);
+  return online;
 }
 
 // Shown while recording: red dot and time, the loudness as moving bars, Stop.

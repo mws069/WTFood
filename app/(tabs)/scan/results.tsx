@@ -1,28 +1,69 @@
 "use client";
 
-import { BookOpen, ChevronDown, Flag, Info, MessageCircleQuestion, ScanLine } from "lucide-react";
+import { BookOpen, ChevronDown, Flag, Info, Loader2, MessageCircleQuestion, Minus, Plus, ScanLine, ShoppingBag, TriangleAlert } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
-import type { ScanResponse } from "@/app/api/scan/route";
+import type { ResultItem } from "@/app/api/scan/route";
 import { VerdictPill } from "@/components/verdict-pill";
-import type { Approach } from "@/lib/scan-schema";
+import { formatConverted, priceNumber, type Rate } from "@/lib/currency";
+import type { OrderOption } from "@/lib/order";
+import { restrictionByKey } from "@/lib/restrictions";
+import type { Approach, Kind } from "@/lib/scan-schema";
 import { s } from "@/lib/strings";
 import type { Verdict } from "@/lib/verdict";
 import { AskStaffCard, type StaffPhrase } from "./ask-staff";
+import { OrderSheet } from "./order-sheet";
 import { ReportSheet } from "./report-sheet";
 
-type Data = Extract<ScanResponse, { ok: true }>;
-type Item = Data["items"][number];
+// What the scan screen has received so far (the dishes arrive one by one).
+export type ResultData = {
+  items: ResultItem[];
+  approach: Approach;
+  kind: Kind | null;
+  remaining: number | null;
+  rate: Rate | null;
+  streaming: boolean;
+  failed: boolean;
+};
 type Filter = "all" | Verdict;
+export type Order = Map<number, { qty: number; options: OrderOption[] }>;
 
 const CERTAINTY_ORDER = ["listed", "always", "usually", "sometimes"] as const;
 
-export function Results({ data, phrases, onScanAgain }: { data: Data; phrases: StaffPhrase[]; onScanAgain: () => void }) {
+export function Results({
+  data,
+  phrases,
+  isTeam,
+  hasCurrency,
+  onScanAgain,
+}: {
+  data: ResultData;
+  phrases: StaffPhrase[];
+  isTeam: boolean;
+  hasCurrency: boolean;
+  onScanAgain: () => void;
+}) {
   const [filter, setFilter] = useState<Filter>("all");
   // Which card opened the Ask-staff card or the report sheet.
-  const [dialog, setDialog] = useState<{ type: "ask" | "report"; item: Item } | null>(null);
+  const [dialog, setDialog] = useState<{ type: "ask" | "report"; item: ResultItem } | null>(null);
+  // Order helper: dish position → quantity and requests.
+  const [order, setOrder] = useState<Order>(new Map());
+  const [orderOpen, setOrderOpen] = useState(false);
   const count = (v: Verdict) => data.items.filter((i) => i.verdict === v).length;
   // Menu order (numbered), so users can count along the menu; filters narrow it down.
   const shown = filter === "all" ? data.items : data.items.filter((i) => i.verdict === filter);
+  const ordered = [...order.values()].reduce((sum, o) => sum + o.qty, 0);
+  const hasPrices = data.items.some((i) => priceNumber(i.price) !== null);
+
+  function changeQty(position: number, delta: number) {
+    setOrder((current) => {
+      const next = new Map(current);
+      const entry = next.get(position) ?? { qty: 0, options: [] };
+      if (entry.qty + delta <= 0) next.delete(position);
+      else next.set(position, { ...entry, qty: entry.qty + delta });
+      return next;
+    });
+  }
 
   return (
     <main className="flex flex-col gap-3 px-4 pt-[calc(1.5rem+env(safe-area-inset-top))]">
@@ -31,11 +72,11 @@ export function Results({ data, phrases, onScanAgain }: { data: Data; phrases: S
         <span className="rounded-full bg-page px-2 py-0.5 text-xs font-semibold text-muted ring-1 ring-line">{data.approach}</span>
       </h1>
 
-      {data.items.length === 0 ? (
+      {data.items.length === 0 && !data.streaming ? (
         <div className="card py-8 text-center text-muted">{s.results.empty}</div>
       ) : (
         <>
-          <p className="card py-3 text-center text-sm font-semibold">
+          <p className="card py-3 text-center text-sm font-semibold" aria-live="polite">
             {s.results.summary(data.items.length, count("ok"), count("check"), count("avoid"))}
           </p>
 
@@ -54,16 +95,18 @@ export function Results({ data, phrases, onScanAgain }: { data: Data; phrases: S
             ))}
           </div>
 
-          {shown.length === 0 ? (
+          {shown.length === 0 && !data.streaming ? (
             <p className="card py-6 text-center text-sm text-muted">{s.results.noneInFilter}</p>
           ) : (
             <ul className="flex flex-col gap-3">
-              {shown.map((item, i) => (
+              {shown.map((item) => (
                 <ResultCard
                   key={item.position}
                   item={item}
-                  index={i}
-                  showKb={data.approach === "A3" && data.kind !== "label"}
+                  rate={data.rate}
+                  isTeam={isTeam}
+                  qty={order.get(item.position)?.qty ?? 0}
+                  onQty={(delta) => changeQty(item.position, delta)}
                   onAsk={() => setDialog({ type: "ask", item })}
                   onReport={() => setDialog({ type: "report", item })}
                 />
@@ -73,13 +116,49 @@ export function Results({ data, phrases, onScanAgain }: { data: Data; phrases: S
         </>
       )}
 
+      {data.streaming && (
+        <p className="flex items-center justify-center gap-2 py-2 text-sm font-semibold text-brand" role="status">
+          <Loader2 size={18} className="animate-spin" /> {s.results.streaming}
+        </p>
+      )}
+      {data.failed && (
+        <p className="flex gap-1.5 rounded-xl bg-check/15 px-3 py-2 text-sm text-[#b35c00]">
+          <TriangleAlert size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+          {s.results.streamFailed}
+        </p>
+      )}
+
+      {hasPrices && data.rate && <p className="px-1 text-xs text-muted">{s.results.rateNote(data.rate.code, new Date(data.rate.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" }))}</p>}
+      {hasPrices && !hasCurrency && !data.streaming && <p className="px-1 text-xs text-muted">{s.results.setCurrency}</p>}
       <p className="px-1 text-xs text-muted">{s.results.disclaimer}</p>
 
-      <button type="button" onClick={onScanAgain} className="btn-primary">
-        <ScanLine size={20} /> {s.results.scanAgain}
-      </button>
-      <p className="text-center text-xs text-muted">{s.results.remaining(data.remaining)}</p>
+      {!data.streaming && (
+        <>
+          <button type="button" onClick={onScanAgain} className="btn-primary">
+            <ScanLine size={20} /> {s.results.scanAgain}
+          </button>
+          {data.remaining !== null && <p className="text-center text-xs text-muted">{s.results.remaining(data.remaining)}</p>}
+        </>
+      )}
 
+      {ordered > 0 && (
+        <div className="fixed inset-x-0 bottom-[calc(6.25rem+env(safe-area-inset-bottom))] z-30 mx-auto w-full max-w-md px-3">
+          <button type="button" onClick={() => setOrderOpen(true)} className="animate-slide-up flex min-h-13 w-full items-center gap-2 rounded-full bg-ink px-5 text-left font-semibold text-white shadow-lg">
+            <ShoppingBag size={18} aria-hidden="true" />
+            <span className="flex-1 truncate text-sm">{s.results.orderBar(ordered)}</span>
+            <span className="text-sm text-white/80">{s.results.showOrder}</span>
+          </button>
+        </div>
+      )}
+
+      {orderOpen && (
+        <OrderSheet
+          items={data.items}
+          order={order}
+          onChange={setOrder}
+          onClose={() => setOrderOpen(false)}
+        />
+      )}
       {dialog?.type === "ask" && (
         <AskStaffCard
           dish={dialog.item}
@@ -88,29 +167,36 @@ export function Results({ data, phrases, onScanAgain }: { data: Data; phrases: S
           onClose={() => setDialog(null)}
         />
       )}
-      {dialog?.type === "report" && <ReportSheet approach={data.approach as Approach} item={dialog.item} onClose={() => setDialog(null)} />}
+      {dialog?.type === "report" && <ReportSheet approach={data.approach} item={dialog.item} onClose={() => setDialog(null)} />}
     </main>
   );
 }
 
 function ResultCard({
   item,
-  index,
-  showKb,
+  rate,
+  isTeam,
+  qty,
+  onQty,
   onAsk,
   onReport,
 }: {
-  item: Item;
-  index: number;
-  showKb: boolean;
+  item: ResultItem;
+  rate: Rate | null;
+  isTeam: boolean;
+  qty: number;
+  onQty: (delta: number) => void;
   onAsk: () => void;
   onReport: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const ingredients = [...item.ingredients].sort((a, b) => CERTAINTY_ORDER.indexOf(a.certainty) - CERTAINTY_ORDER.indexOf(b.certainty));
+  const hkd = priceNumber(item.price);
+  // Users see verified dishes in the lexicon; the team sees drafts too.
+  const lexiconId = item.kb_dish && (item.kb_dish.verified || isTeam) ? item.kb_dish.dish_id : null;
 
   return (
-    <li className="card animate-slide-up flex flex-col gap-2" style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}>
+    <li className="card animate-slide-up flex flex-col gap-2">
       <div className="flex items-start gap-3">
         <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-page text-sm font-bold text-muted ring-1 ring-line" aria-label={s.results.position(item.position)}>
           {item.position}
@@ -126,6 +212,12 @@ function ResultCard({
             <span lang="zh-HK">{item.original_text}</span>
             {item.jyutping && ` · ${item.jyutping}`}
           </p>
+          {item.price && (
+            <p className="text-sm font-semibold">
+              {hkd !== null ? `HK$${hkd}` : item.price}
+              {hkd !== null && rate && <span className="font-normal text-muted"> {formatConverted(hkd, rate.code, rate.rate)}</span>}
+            </p>
+          )}
         </div>
         <VerdictPill verdict={item.verdict} />
       </div>
@@ -147,6 +239,18 @@ function ResultCard({
             </li>
           ))}
         </ul>
+      )}
+
+      {item.friends.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5 text-xs">
+          <span className="font-semibold text-muted">{s.results.friends}:</span>
+          {item.friends.map((f) => (
+            <span key={f.restriction} title={f.reason ?? undefined} className="inline-flex items-center gap-1 rounded-full bg-page py-0.5 pl-2 ring-1 ring-line">
+              {restrictionByKey(f.restriction)?.label ?? f.restriction}
+              <VerdictPill verdict={f.verdict} size="sm" />
+            </span>
+          ))}
+        </div>
       )}
 
       {ingredients.length > 0 && (
@@ -172,7 +276,7 @@ function ResultCard({
                 ))}
               </ul>
               {ingredients.some((ing) => !ing.verified) && <p className="mt-1 text-xs text-muted">{s.results.notVerifiedHint}</p>}
-              {showKb && !item.kb_dish && <p className="mt-2 border-t border-line pt-2 text-xs text-muted">{s.results.aiEstimate}</p>}
+              {item.kb_dish === null && <p className="mt-2 border-t border-line pt-2 text-xs text-muted">{s.results.aiEstimate}</p>}
               {item.kb_dish && (
                 <div className="mt-2 border-t border-line pt-2">
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted">{s.results.basedOn}</p>
@@ -183,6 +287,11 @@ function ResultCard({
                       <span className="rounded-full bg-check/15 px-1.5 text-[11px] font-semibold text-[#b35c00]">{s.results.entryDraft}</span>
                     )}
                   </p>
+                  {lexiconId !== null && (
+                    <Link href={`/lexicon/${lexiconId}`} className="mt-1 inline-flex min-h-9 items-center text-sm font-semibold text-brand">
+                      {s.results.openInLexicon}
+                    </Link>
+                  )}
                 </div>
               )}
             </div>
@@ -190,12 +299,27 @@ function ResultCard({
         </>
       )}
 
-      <div className="flex gap-2 pt-1">
+      <div className="flex flex-wrap items-center gap-2 pt-1">
+        {qty === 0 ? (
+          <button type="button" onClick={() => onQty(1)} className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-ink px-3.5 text-sm font-semibold text-white">
+            <Plus size={16} /> {s.results.addToOrder}
+          </button>
+        ) : (
+          <span className="inline-flex min-h-10 items-center rounded-full bg-ink text-white">
+            <button type="button" onClick={() => onQty(-1)} aria-label={s.results.less} className="grid size-10 place-items-center">
+              <Minus size={16} />
+            </button>
+            <span className="min-w-6 text-center text-sm font-bold tabular-nums">{qty}</span>
+            <button type="button" onClick={() => onQty(1)} aria-label={s.results.more} className="grid size-10 place-items-center">
+              <Plus size={16} />
+            </button>
+          </span>
+        )}
         <button type="button" onClick={onAsk} className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-brand-light px-3.5 text-sm font-semibold text-brand-dark">
           <MessageCircleQuestion size={16} /> {s.results.askStaff}
         </button>
-        <button type="button" onClick={onReport} className="inline-flex min-h-10 items-center gap-1.5 rounded-full px-3.5 text-sm font-semibold text-muted ring-1 ring-line">
-          <Flag size={15} /> {s.results.report}
+        <button type="button" onClick={onReport} aria-label={s.results.report} className="inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-muted ring-1 ring-line">
+          <Flag size={15} />
         </button>
       </div>
     </li>

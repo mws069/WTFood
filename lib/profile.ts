@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { isCurrency, type CurrencyCode } from "@/lib/currency";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -9,6 +10,7 @@ export type CurrentProfile = {
   restrictions: string[];
   healthConsentAt: string | null;
   role: "user" | "team";
+  currency: CurrencyCode | null;
 };
 
 // The logged-in user's profile. The proxy already sends logged-out visitors
@@ -21,7 +23,7 @@ export async function getCurrentProfile(): Promise<CurrentProfile> {
 
   let { data: profile } = await supabase
     .from("profiles")
-    .select("username, restrictions, health_consent_at, role")
+    .select("username, restrictions, health_consent_at, role, currency")
     .eq("id", id)
     .maybeSingle();
 
@@ -35,7 +37,7 @@ export async function getCurrentProfile(): Promise<CurrentProfile> {
     const { data: created } = await admin
       .from("profiles")
       .upsert({ id }, { onConflict: "id" })
-      .select("username, restrictions, health_consent_at, role")
+      .select("username, restrictions, health_consent_at, role, currency")
       .single();
     if (!created) redirect("/auth/signout");
     profile = created;
@@ -48,6 +50,7 @@ export async function getCurrentProfile(): Promise<CurrentProfile> {
     restrictions: profile.restrictions,
     healthConsentAt: profile.health_consent_at,
     role: profile.role === "team" ? "team" : "user",
+    currency: isCurrency(profile.currency) ? profile.currency : null,
   };
 }
 
