@@ -287,6 +287,7 @@ export const s = {
     record: "Speak",
     recordStaff: "Staff speaks",
     stop: "Stop",
+    recording: "Recording",
     translate: "Translate",
     working: "Translating…",
     showBig: "Show full screen",
