@@ -96,7 +96,7 @@ More on the results screen:
 - **Prices:** shown in HK$ and, if the user picked a currency (Profile → Currency, about 30 currencies), approximately in that currency. Rates: European Central Bank via frankfurter.dev (free, no key), loaded once a day; the date of the rate is shown.
 - **Eating with friends:** before scanning, extra restrictions can be picked ("Vegan", "Halal" …). They are only used for that scan; each card shows the verdict per friend restriction.
 - **Categories:** every dish gets a kind (drink, snack & dim sum, main, soup, side, dessert, set meal …) shown as a coloured chip with an icon.
-- **Order helper:** "Add to order" on each dish, quantity and requests that fit the kind of dish (`lib/order.ts`: drinks 走冰/少甜/熱/凍, mains 走蔥/走辣/少油 …), plus own requests that the translator turns into the kitchen's short form (`mode: request`, e.g. "no bean sprouts" → 走芽菜; allergies are kept). Then a big card in Chinese with quantities, requests and the total. Nothing is ordered or paid in the app.
+- **Order helper:** "Add to order" on each dish, quantity and requests that fit the kind of dish (`lib/order.ts`: drinks 走冰/少甜/熱/凍, mains 走蔥/走辣/少油 …), plus own requests that the translator turns into the kitchen's short form (`mode: request`, e.g. "no bean sprouts" → 走芽菜; allergies are kept). Then a big card in Chinese, grouped by kind of dish, with quantities, requests, the total and the user's restrictions (the allergy card); below it the translator, for when something is sold out or a request is not possible. Nothing is ordered or paid in the app.
 - **Last result** stays on the phone (localStorage) and can be reopened from the scan screen. Removed on logout and account deletion.
 - **Lexicon link** on dishes that are verified in the database.
 

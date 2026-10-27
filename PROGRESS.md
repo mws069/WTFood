@@ -2,6 +2,14 @@
 
 Updated after every milestone. Newest entry on top.
 
+## 2026-10-27 · Order card: restrictions, chat, categories
+
+- The order card is **grouped by kind of dish** (套餐 Set meal → 主菜 Main → 小食・點心 → 湯 → 配菜 → 甜品 Dessert → 飲品 Drink), each group with its Chinese name for the staff.
+- **My dietary restrictions** at the bottom of the card, in Chinese with English below (the allergy card, written once and kept on the phone).
+- **Talk to the staff** below the card: the translator in both directions, e.g. the staff types or says "榴蓮黑糯米賣晒，轉芒果西米露得唔得？" → "The durian black glutinous rice is sold out. Would you like to switch to mango sago?", and you answer in English.
+- In the order list, dishes that are "Check" or "Avoid" for you show that pill.
+- Checked on localhost with 4 dishes in 3 groups; 141 unit tests, lint, types.
+
 ## 2026-10-27 · Fixes after testing milestone 6d
 
 - **Categories:** dessert combinations ("龍眼椰果冰+士多啤梨仙草凍(迷你)") are "Dessert", not "Set meal". "Set meal" is only for meals with a main dish plus drink or soup (A餐, 午市套餐). Checked with a test menu: 3 dessert combos → Dessert, A餐 → Set meal, 凍檸茶 → Drink.

@@ -38,6 +38,29 @@ export const OPTIONS_BY_CATEGORY: Record<DishCategory | "unknown", OrderOption[]
   unknown: ["no_spring_onion", "not_spicy", "less_oil", "less_sweet", "hot", "cold"],
 };
 
+// Order card: dishes grouped by kind, in the order a meal is usually ordered,
+// with the group name in Chinese for the staff.
+export const CATEGORY_ORDER: (DishCategory | "unknown")[] = ["set", "main", "snack", "soup", "side", "dessert", "drink", "packaged", "other", "unknown"];
+export const CATEGORY_ZH: Record<DishCategory | "unknown", string> = {
+  set: "套餐",
+  main: "主菜",
+  snack: "小食・點心",
+  soup: "湯",
+  side: "配菜",
+  dessert: "甜品",
+  drink: "飲品",
+  packaged: "包裝食品",
+  other: "其他",
+  unknown: "其他",
+};
+
+export function groupByCategory<T extends { category: DishCategory | null }>(entries: T[]) {
+  return CATEGORY_ORDER.map((category) => ({
+    category,
+    entries: entries.filter((e) => (e.category ?? "unknown") === category),
+  })).filter((group) => group.entries.length > 0);
+}
+
 // Requests that exclude each other: choosing one removes the other.
 const EXCLUSIVE: [OrderOption, OrderOption][] = [
   ["hot", "cold"],
