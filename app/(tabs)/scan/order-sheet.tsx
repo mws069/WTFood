@@ -1,6 +1,6 @@
 "use client";
 
-import { Languages, Loader2, Minus, Plus, Trash2, X } from "lucide-react";
+import { Loader2, Minus, Plus, Trash2, X } from "lucide-react";
 import { useId, useState } from "react";
 import type { ResultItem } from "@/app/api/scan/route";
 import type { TranslateResponse } from "@/app/api/translate/route";
@@ -223,12 +223,22 @@ function Requests({
         </div>
       )}
       {custom.length > 0 && (
-        <ul className="flex flex-wrap gap-1.5">
+        <ul className="flex flex-col gap-1.5">
           {custom.map((request, i) => (
-            <li key={`${request.zh}-${i}`} className="inline-flex min-h-9 items-center gap-1 rounded-full bg-ink pl-3 text-sm font-semibold text-white">
-              <span lang="zh-HK">{request.zh}</span> · {request.en}
-              <button type="button" onClick={() => onRemoveCustom(i)} aria-label={s.order.removeRequest} className="grid size-9 place-items-center">
-                <X size={15} />
+            <li key={`${request.zh}-${i}`} className="flex min-h-12 items-center gap-2 rounded-xl bg-ink py-1.5 pr-1.5 pl-3 text-white">
+              <span className="min-w-0 flex-1">
+                <span lang="zh-HK" className="block font-bold">
+                  {request.zh}
+                </span>
+                <span className="block text-xs text-white/75">{request.en}</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => onRemoveCustom(i)}
+                aria-label={`${s.order.removeRequest}: ${request.en}`}
+                className="grid size-10 shrink-0 place-items-center rounded-full bg-white/15"
+              >
+                <X size={18} />
               </button>
             </li>
           ))}
@@ -247,10 +257,12 @@ function Requests({
           placeholder={s.order.ownPlaceholder}
           className="input min-w-0 flex-1"
         />
-        <button type="button" onClick={add} disabled={!text.trim() || busy} aria-label={s.order.addRequest} className="btn-secondary w-14 shrink-0 px-0">
-          {busy ? <Loader2 size={18} className="animate-spin" /> : <Languages size={18} />}
+        <button type="button" onClick={add} disabled={!text.trim() || busy} className="btn-primary shrink-0 px-4">
+          {busy ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
+          {s.order.add}
         </button>
       </div>
+      <p className="-mt-1 px-1 text-xs text-muted">{s.order.ownHint}</p>
       {error && <FormMessage kind="error" text={s.translator.errors[error]} />}
     </div>
   );

@@ -2,6 +2,12 @@
 
 Updated after every milestone. Newest entry on top.
 
+## 2026-10-27 · Fixes after testing milestone 6d
+
+- **Categories:** dessert combinations ("龍眼椰果冰+士多啤梨仙草凍(迷你)") are "Dessert", not "Set meal". "Set meal" is only for meals with a main dish plus drink or soup (A餐, 午市套餐). Checked with a test menu: 3 dessert combos → Dessert, A餐 → Set meal, 凍檸茶 → Drink.
+- **Several photos at once** also from Home → Scan → "Choose from photos" (before, only one photo came through from there). More than 4 → the first 4 are used, with a note.
+- **Own requests:** a clear "Add" button next to the field (readable with the keyboard closed); added requests appear as their own block with Chinese, English and a remove button.
+
 ## 2026-10-27 · Milestone 6d: several photos, categories, better order card
 
 **What works now**
