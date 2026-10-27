@@ -1,13 +1,13 @@
-// A photo picked on Home ("Scan" icon) waits here until the scan screen
-// takes it. Kept in memory only (client-side navigation keeps it).
-let pending: File | null = null;
+// Photos picked on Home ("Scan" icon) wait here until the scan screen takes
+// them. Kept in memory only (client-side navigation keeps them).
+let pending: File[] = [];
 
-export function setPendingPhoto(file: File) {
-  pending = file;
+export function setPendingPhotos(files: File[]) {
+  pending = files;
 }
 
-export function takePendingPhoto() {
-  const file = pending;
-  pending = null;
-  return file;
+export function takePendingPhotos() {
+  const files = pending;
+  pending = [];
+  return files;
 }

@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ScanError, ScanEvent } from "@/app/api/scan/route";
 import { FormMessage } from "@/components/auth-shell";
 import { loadLastScan, saveLastScan, type SavedScan } from "@/lib/last-scan";
-import { takePendingPhoto } from "@/lib/pending-photo";
+import { takePendingPhotos } from "@/lib/pending-photo";
 import { fitTogether, resizeImage } from "@/lib/resize-image";
 import { RESTRICTIONS } from "@/lib/restrictions";
 import type { Approach, Kind } from "@/lib/scan-schema";
@@ -51,6 +51,8 @@ export function ScanFlow({
   const [approach, setApproach] = useState<Approach>("A3");
   const [stage, setStage] = useState<Stage>({ name: "pick" });
   const [step, setStep] = useState(0);
+  // Set when more photos were picked than fit (only the first ones are used).
+  const [tooMany, setTooMany] = useState(false);
   const cameraInput = useRef<HTMLInputElement>(null);
   const libraryInput = useRef<HTMLInputElement>(null);
   // "Eating with friends": extra restrictions for the next scans (remembered on this phone).
@@ -87,10 +89,10 @@ export function ScanFlow({
     return () => timers.forEach(clearTimeout);
   }, [stage.name]);
 
-  // A photo picked with the Scan icon on Home goes straight to the preview.
+  // Photos picked with the Scan icon on Home go straight to the preview.
   useEffect(() => {
-    const file = takePendingPhoto();
-    if (file) void onFiles([file]);
+    const files = takePendingPhotos();
+    if (files.length) void onFiles(files);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only once, on arrival
   }, []);
 
@@ -99,6 +101,7 @@ export function ScanFlow({
     const current = stage.name === "preview" ? stage.photos : [];
     const room = MAX_PHOTOS - current.length;
     if (files.length === 0 || room <= 0) return;
+    setTooMany(files.length > room);
     try {
       const added = await Promise.all(files.slice(0, room).map((file) => resizeImage(file)));
       const blobs = await fitTogether([...current.map((p) => p.blob), ...added]);
@@ -110,6 +113,7 @@ export function ScanFlow({
   }
 
   function removePhoto(index: number) {
+    setTooMany(false);
     if (stage.name !== "preview") return;
     URL.revokeObjectURL(stage.photos[index].url);
     const photos = stage.photos.filter((_, i) => i !== index);
@@ -242,6 +246,7 @@ export function ScanFlow({
               ))}
             </ul>
           )}
+          {tooMany && <FormMessage kind="info" text={s.scan.tooManyPhotos(MAX_PHOTOS)} />}
           {stage.photos.length < MAX_PHOTOS && (
             <div className="flex flex-col gap-1.5">
               <p className="text-sm font-semibold">{s.scan.addMore(stage.photos.length, MAX_PHOTOS)}</p>
