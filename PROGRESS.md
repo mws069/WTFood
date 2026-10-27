@@ -2,6 +2,26 @@
 
 Updated after every milestone. Newest entry on top.
 
+## 2026-10-27 · Milestone 6d: several photos, categories, better order card
+
+**What works now**
+- **Several photos per scan** (up to 4) for long menus: pick several at once or add more ("Long menu? Add another photo"). They are read as one menu; dishes on overlapping photos appear only once. Each photo counts as one scan for the daily limit.
+- **Category per dish** as a coloured chip with icon: Drink, Snack & dim sum, Main, Soup, Side, Dessert, Set meal, Packaged food.
+- **Prices** as a clear two-part tag at the top right of each card: "HK$58 | ≈ $7.39".
+- **Requests that fit the dish:** drinks get hot/cold, no ice/less ice, less sweet/no sugar; mains get no spring onion, no coriander, not spicy, less oil, less salt, sauce on the side; desserts, soups, set meals their own. Opposites exclude each other (hot ↔ cold).
+- **Own requests:** type in English → short kitchen Chinese ("No bean sprouts, please" → 走芽菜, "extra rice" → 加底). Allergies are kept ("no peanuts, I'm allergic" → 花生敏感，唔好落花生).
+- **New order card:** greeting with its English right below, one block per dish with a big quantity tile (2×), the dish in large Chinese with English below, requests as chips (Chinese + English), and the total in HK$ and your currency.
+- Scan screen: photos first, then settings, then the buttons; "Eating with friends" stays closed and shows the picked restrictions in its title.
+
+**How to test**
+- Scan → "Choose from photos" → pick 2 photos of a long menu (or add one more after the first).
+- Results → category chips and price tags; "Add to order" on a drink and a main → different requests → own request → "Show to staff".
+
+**Checked**
+- 2 photos (overlapping) → 6 dishes, each once, in 35 s; categories plausible (豉汁蒸排骨 → dim sum, 蠔油菜心 → side).
+- Order card with 2 dishes, requests, own request 走芽菜 and total HK$88 ≈ $11.22.
+- 140 unit tests, lint, types.
+
 ## 2026-10-26 · Milestone 6c: comfort features
 
 **What works now**

@@ -33,6 +33,7 @@ export async function dictionaryItems(parts: A1Item[], terms: Term[]): Promise<S
     original_text: part.text,
     menu_number: part.number ?? null,
     price: part.price ?? null,
+    category: null,
     name_en: part.text === LABEL_FALLBACK.zh ? LABEL_FALLBACK.en : (english[i] ?? part.text),
     jyutping: null,
     description_en: null,
@@ -48,9 +49,11 @@ export async function dictionaryItems(parts: A1Item[], terms: Term[]): Promise<S
   }));
 }
 
-export async function runA1(image: Blob, kindHint: Kind | null): Promise<ScanResult> {
+export async function runA1(images: Blob[], kindHint: Kind | null): Promise<ScanResult> {
   const started = Date.now();
-  const [lines, terms] = await Promise.all([readText(image), loadTerms()]);
+  // Several photos of one menu: their text lines one after another.
+  const [pages, terms] = await Promise.all([Promise.all(images.map(readText)), loadTerms()]);
+  const lines = pages.flat();
 
   const kind = detectKind(lines, kindHint);
   const items = await dictionaryItems(kind === "label" ? splitLabel(lines) : splitMenu(lines), terms);

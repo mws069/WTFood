@@ -1,24 +1,29 @@
 "use client";
 
-import { Camera, Check, History, ImageUp, Loader2, RotateCcw, Users } from "lucide-react";
+import { Camera, Check, ChevronDown, History, ImageUp, Loader2, RotateCcw, Users, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { ScanError, ScanEvent } from "@/app/api/scan/route";
 import { FormMessage } from "@/components/auth-shell";
 import { loadLastScan, saveLastScan, type SavedScan } from "@/lib/last-scan";
 import { takePendingPhoto } from "@/lib/pending-photo";
-import { resizeImage } from "@/lib/resize-image";
+import { fitTogether, resizeImage } from "@/lib/resize-image";
 import { RESTRICTIONS } from "@/lib/restrictions";
 import type { Approach, Kind } from "@/lib/scan-schema";
 import { s } from "@/lib/strings";
 import type { StaffPhrase } from "./ask-staff";
 import { Results, type ResultData } from "./results";
 
+// A photo shrunk on the phone, with a local URL for the preview.
+type Photo = { blob: Blob; url: string };
 type Stage =
   | { name: "pick" }
-  | { name: "preview"; blob: Blob; url: string }
-  | { name: "processing"; url: string }
+  | { name: "preview"; photos: Photo[] }
+  | { name: "processing"; photos: Photo[] }
   | { name: "results"; data: ResultData }
-  | { name: "error"; message: string; url?: string; blob?: Blob };
+  | { name: "error"; message: string; photos?: Photo[] };
+
+// A long menu can be photographed in parts; they are read as one menu.
+export const MAX_PHOTOS = 4;
 
 const FRIENDS_KEY = "wtfood:friends";
 
@@ -85,29 +90,42 @@ export function ScanFlow({
   // A photo picked with the Scan icon on Home goes straight to the preview.
   useEffect(() => {
     const file = takePendingPhoto();
-    if (file) void onFile(file);
+    if (file) void onFiles([file]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only once, on arrival
   }, []);
 
-  async function onFile(file: File | undefined) {
-    if (!file) return;
+  // New photos are added to the ones already picked (at most MAX_PHOTOS).
+  async function onFiles(files: File[]) {
+    const current = stage.name === "preview" ? stage.photos : [];
+    const room = MAX_PHOTOS - current.length;
+    if (files.length === 0 || room <= 0) return;
     try {
-      const blob = await resizeImage(file);
-      setStage({ name: "preview", blob, url: URL.createObjectURL(blob) });
+      const added = await Promise.all(files.slice(0, room).map((file) => resizeImage(file)));
+      const blobs = await fitTogether([...current.map((p) => p.blob), ...added]);
+      current.forEach((p) => URL.revokeObjectURL(p.url));
+      setStage({ name: "preview", photos: blobs.map((blob) => ({ blob, url: URL.createObjectURL(blob) })) });
     } catch {
       setStage({ name: "error", message: s.scan.prepareError });
     }
   }
 
+  function removePhoto(index: number) {
+    if (stage.name !== "preview") return;
+    URL.revokeObjectURL(stage.photos[index].url);
+    const photos = stage.photos.filter((_, i) => i !== index);
+    setStage(photos.length ? { name: "preview", photos } : { name: "pick" });
+  }
+
   // The answer is a stream: each dish appears as soon as it is ready.
-  async function submit(blob: Blob, url: string) {
+  async function submit(photos: Photo[]) {
     setStep(0);
-    setStage({ name: "processing", url });
+    setStage({ name: "processing", photos });
     const body = new FormData();
-    body.append("image", blob, "photo.jpg");
+    photos.forEach((photo, i) => body.append("image", photo.blob, `photo-${i + 1}.jpg`));
     if (kind) body.append("kind", kind);
     if (isTeam) body.append("approach", approach);
     if (friends.length) body.append("friends", friends.join(","));
-    const fail = (message: string) => setStage({ name: "error", message, url, blob });
+    const fail = (message: string) => setStage({ name: "error", message, photos });
     const errorText = (error: ScanError) => (error === "limit" ? s.scan.errors.limit(limit) : s.scan.errors[error]);
 
     let response: Response;
@@ -142,7 +160,7 @@ export function ScanFlow({
             show({ approach: event.approach, kind: event.kind, remaining: event.remaining, rate: event.rate, streaming: false });
             saveLastScan(userId, data);
             setLastScan(loadLastScan<ResultData>(userId));
-            URL.revokeObjectURL(url);
+            photos.forEach((p) => URL.revokeObjectURL(p.url));
           } else if (event.type === "error") {
             if (data.items.length === 0) return fail(errorText(event.error));
             show({ streaming: false, failed: true });
@@ -175,8 +193,70 @@ export function ScanFlow({
       </div>
 
       {/* Hidden file inputs: camera (phones open it directly) and photo library */}
-      <input ref={cameraInput} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
-      <input ref={libraryInput} type="file" accept="image/*" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
+      <input
+        ref={cameraInput}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={(e) => {
+          void onFiles([...(e.target.files ?? [])]);
+          e.target.value = "";
+        }}
+      />
+      <input
+        ref={libraryInput}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          void onFiles([...(e.target.files ?? [])]);
+          e.target.value = "";
+        }}
+      />
+
+      {stage.name === "preview" && (
+        <div className="flex flex-col gap-3">
+          {stage.photos.length === 1 ? (
+            <div className="relative">
+              {/* eslint-disable-next-line @next/next/no-img-element -- local preview of the user's photo */}
+              <img src={stage.photos[0].url} alt="" className="max-h-[50vh] w-full rounded-card bg-black object-contain" />
+            </div>
+          ) : (
+            <ul className="grid grid-cols-2 gap-2">
+              {stage.photos.map((photo, i) => (
+                <li key={photo.url} className="relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- local preview of the user's photo */}
+                  <img src={photo.url} alt={s.scan.photoN(i + 1)} className="aspect-[3/4] w-full rounded-2xl bg-black object-contain" />
+                  <span className="absolute top-2 left-2 grid size-7 place-items-center rounded-full bg-black/60 text-sm font-bold text-white">{i + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(i)}
+                    aria-label={s.scan.removePhoto(i + 1)}
+                    className="absolute top-1.5 right-1.5 grid size-9 place-items-center rounded-full bg-black/60 text-white"
+                  >
+                    <X size={18} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {stage.photos.length < MAX_PHOTOS && (
+            <div className="flex flex-col gap-1.5">
+              <p className="text-sm font-semibold">{s.scan.addMore(stage.photos.length, MAX_PHOTOS)}</p>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => cameraInput.current?.click()} className="btn-secondary flex-1">
+                  <Camera size={18} /> {s.scan.addCamera}
+                </button>
+                <button type="button" onClick={() => libraryInput.current?.click()} className="btn-secondary flex-1">
+                  <ImageUp size={18} /> {s.scan.addLibrary}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {(stage.name === "pick" || stage.name === "preview") && (
         <div>
@@ -217,11 +297,18 @@ export function ScanFlow({
       )}
 
       {(stage.name === "pick" || stage.name === "preview") && (
-        <details className="card group" open={friends.length > 0}>
+        <details className="card group">
           <summary className="flex min-h-8 cursor-pointer list-none items-center gap-2 font-semibold [&::-webkit-details-marker]:hidden">
             <Users size={18} className="text-brand" aria-hidden="true" />
-            <span className="flex-1">{s.scan.friendsLabel}</span>
-            {friends.length > 0 && <span className="rounded-full bg-brand px-2 text-xs font-bold text-white">{friends.length}</span>}
+            <span className="min-w-0 flex-1">
+              {s.scan.friendsLabel}
+              {friends.length > 0 && (
+                <span className="block truncate text-sm font-normal text-muted">
+                  {friends.map((key) => RESTRICTIONS.find((r) => r.key === key)?.label ?? key).join(", ")}
+                </span>
+              )}
+            </span>
+            <ChevronDown size={18} className="shrink-0 text-muted transition group-open:rotate-180" aria-hidden="true" />
           </summary>
           <p className="mt-1 text-sm text-muted">{s.scan.friendsHint}</p>
           <div className="mt-2 flex flex-wrap gap-2">
@@ -238,6 +325,17 @@ export function ScanFlow({
             ))}
           </div>
         </details>
+      )}
+
+      {stage.name === "preview" && (
+        <div className="flex gap-2">
+          <button type="button" onClick={reset} className="btn-secondary flex-1">
+            <RotateCcw size={18} /> {s.scan.retake}
+          </button>
+          <button type="button" onClick={() => submit(stage.photos)} className="btn-primary flex-[2]">
+            {stage.photos.length > 1 ? s.scan.checkN(stage.photos.length) : s.scan.check}
+          </button>
+        </div>
       )}
 
       {stage.name === "pick" && (
@@ -259,22 +357,8 @@ export function ScanFlow({
           <button type="button" onClick={() => libraryInput.current?.click()} className="btn-secondary">
             <ImageUp size={20} /> {s.scan.choosePhoto}
           </button>
+          <p className="px-2 text-center text-xs text-muted">{s.scan.multiHint(MAX_PHOTOS)}</p>
           <p className="px-2 text-center text-xs text-muted">{s.scan.privacyNote}</p>
-        </div>
-      )}
-
-      {stage.name === "preview" && (
-        <div className="flex flex-col gap-3">
-          {/* eslint-disable-next-line @next/next/no-img-element -- local preview of the user's photo */}
-          <img src={stage.url} alt="" className="max-h-[50vh] w-full rounded-card bg-black object-contain" />
-          <div className="flex gap-2">
-            <button type="button" onClick={reset} className="btn-secondary flex-1">
-              <RotateCcw size={18} /> {s.scan.retake}
-            </button>
-            <button type="button" onClick={() => submit(stage.blob, stage.url)} className="btn-primary flex-[2]">
-              {s.scan.check}
-            </button>
-          </div>
         </div>
       )}
 
@@ -282,8 +366,11 @@ export function ScanFlow({
         <div className="flex flex-col gap-4">
           <div className="relative overflow-hidden rounded-card bg-black">
             {/* eslint-disable-next-line @next/next/no-img-element -- local preview of the user's photo */}
-            <img src={stage.url} alt="" className="max-h-[45vh] w-full object-contain opacity-80" />
+            <img src={stage.photos[0].url} alt="" className="max-h-[45vh] w-full object-contain opacity-80" />
             <div className="animate-scan-line absolute inset-x-0 h-1 bg-brand shadow-[0_0_24px_6px_rgba(22,119,255,0.7)]" />
+            {stage.photos.length > 1 && (
+              <span className="absolute top-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-sm font-bold text-white">{s.scan.photosCount(stage.photos.length)}</span>
+            )}
           </div>
           <ol className="card flex flex-col gap-3" aria-live="polite">
             {s.scan.steps.map((label, i) => (
@@ -310,8 +397,8 @@ export function ScanFlow({
             <button type="button" onClick={reset} className="btn-secondary flex-1">
               <RotateCcw size={18} /> {s.scan.retake}
             </button>
-            {stage.blob && stage.url && (
-              <button type="button" onClick={() => submit(stage.blob!, stage.url!)} className="btn-primary flex-1">
+            {stage.photos && (
+              <button type="button" onClick={() => submit(stage.photos!)} className="btn-primary flex-1">
                 {s.scan.tryAgain}
               </button>
             )}

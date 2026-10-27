@@ -4,9 +4,11 @@ import { BookOpen, ChevronDown, Flag, Info, Loader2, MessageCircleQuestion, Minu
 import Link from "next/link";
 import { useState } from "react";
 import type { ResultItem } from "@/app/api/scan/route";
+import { DishCategoryChip } from "@/components/dish-category-chip";
+import { PriceTag } from "@/components/price-tag";
 import { VerdictPill } from "@/components/verdict-pill";
-import { formatConverted, priceNumber, type Rate } from "@/lib/currency";
-import type { OrderOption } from "@/lib/order";
+import { priceNumber, type Rate } from "@/lib/currency";
+import type { CustomRequest, OrderOption } from "@/lib/order";
 import { restrictionByKey } from "@/lib/restrictions";
 import type { Approach, Kind } from "@/lib/scan-schema";
 import { s } from "@/lib/strings";
@@ -26,7 +28,7 @@ export type ResultData = {
   failed: boolean;
 };
 type Filter = "all" | Verdict;
-export type Order = Map<number, { qty: number; options: OrderOption[] }>;
+export type Order = Map<number, { qty: number; options: OrderOption[]; custom: CustomRequest[] }>;
 
 const CERTAINTY_ORDER = ["listed", "always", "usually", "sometimes"] as const;
 
@@ -58,7 +60,7 @@ export function Results({
   function changeQty(position: number, delta: number) {
     setOrder((current) => {
       const next = new Map(current);
-      const entry = next.get(position) ?? { qty: 0, options: [] };
+      const entry = next.get(position) ?? { qty: 0, options: [], custom: [] };
       if (entry.qty + delta <= 0) next.delete(position);
       else next.set(position, { ...entry, qty: entry.qty + delta });
       return next;
@@ -154,6 +156,7 @@ export function Results({
       {orderOpen && (
         <OrderSheet
           items={data.items}
+          rate={data.rate}
           order={order}
           onChange={setOrder}
           onClose={() => setOrderOpen(false)}
@@ -197,27 +200,26 @@ function ResultCard({
 
   return (
     <li className="card animate-slide-up flex flex-col gap-2">
-      <div className="flex items-start gap-3">
-        <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-page text-sm font-bold text-muted ring-1 ring-line" aria-label={s.results.position(item.position)}>
+      {/* Top row: position on the photo, kind of dish, menu number – and the price. */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="grid size-6 shrink-0 place-items-center rounded-full bg-page text-xs font-bold text-muted ring-1 ring-line" aria-label={s.results.position(item.position)}>
           {item.position}
         </span>
+        {item.category && <DishCategoryChip category={item.category} />}
+        {item.menu_number && <span className="rounded-full bg-brand-light px-2 py-0.5 text-xs font-bold text-brand-dark">{s.results.menuNumber(item.menu_number)}</span>}
+        {item.price && (
+          <span className="ml-auto">
+            <PriceTag hkd={hkd} raw={item.price} rate={rate} />
+          </span>
+        )}
+      </div>
+      <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
-          <p className="font-bold leading-snug">
-            {item.name_en}
-            {item.menu_number && (
-              <span className="ml-1.5 rounded-md bg-brand-light px-1.5 py-0.5 align-[2px] text-xs font-bold text-brand-dark">{s.results.menuNumber(item.menu_number)}</span>
-            )}
-          </p>
+          <p className="text-[17px] font-bold leading-snug">{item.name_en}</p>
           <p className="text-sm text-muted">
             <span lang="zh-HK">{item.original_text}</span>
             {item.jyutping && ` · ${item.jyutping}`}
           </p>
-          {item.price && (
-            <p className="text-sm font-semibold">
-              {hkd !== null ? `HK$${hkd}` : item.price}
-              {hkd !== null && rate && <span className="font-normal text-muted"> {formatConverted(hkd, rate.code, rate.rate)}</span>}
-            </p>
-          )}
         </div>
         <VerdictPill verdict={item.verdict} />
       </div>

@@ -44,6 +44,18 @@ export function toCantonese(text: string) {
   );
 }
 
+// A request for one dish on the order card, in the short form Hong Kong
+// kitchens use (走芽菜 = no bean sprouts, 汁另上 = sauce on the side).
+export async function toKitchenRequest(text: string) {
+  const { text_zh } = await ask(
+    `Turn a foreign student's request for one dish into the short form Hong Kong restaurant staff write on orders, in Traditional Chinese, e.g. "no bean sprouts" → 走芽菜, "sauce on the side" → 汁另上, "extra rice" → 加底, "cut in half" → 切開兩份. No greeting, no full sentence, no punctuation at the end. If there is no common short form, use a very short phrase. If the request mentions an allergy, keep it: the staff must know it is an allergy, e.g. "no peanuts, I'm allergic" → 花生敏感，唔好落花生.`,
+    text,
+    z.object({ text_zh: z.string().describe("Short request in Traditional Chinese") }),
+    "kitchen_request",
+  );
+  return text_zh;
+}
+
 const englishSchema = z.object({ text_en: z.string().describe("Natural English translation") });
 
 // What the staff said (Cantonese, Mandarin or written Chinese) → English.
