@@ -9,11 +9,11 @@ import { FullScreen, NotReviewedNote, PhraseBig, type Phrase } from "./phrase";
 
 // One card in Cantonese with all of the user's restrictions. Written once by
 // the translator, then kept on this phone (so it also works offline) until
-// the restrictions change.
+// the restrictions change. Also shown on the order card.
 const KEY = "wtfood:allergy-card";
 type Saved = { userId: string; restrictions: string; card: Phrase };
 
-function load(userId: string, restrictions: string): Phrase | null {
+function loadSaved(userId: string, restrictions: string): Phrase | null {
   try {
     const saved = JSON.parse(localStorage.getItem(KEY) ?? "null") as Saved | null;
     return saved?.userId === userId && saved.restrictions === restrictions ? saved.card : null;
@@ -22,16 +22,14 @@ function load(userId: string, restrictions: string): Phrase | null {
   }
 }
 
-export function AllergyCard({ userId, restrictions }: { userId: string; restrictions: string[] }) {
+export function useAllergyCard(userId: string, restrictions: string[]) {
   const [card, setCard] = useState<Phrase | null>(null);
-  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<keyof typeof s.translator.errors | null>(null);
   const key = restrictions.join(",");
 
-  async function show() {
-    setOpen(true);
-    const saved = card ?? load(userId, key);
+  async function load() {
+    const saved = card ?? loadSaved(userId, key);
     if (saved) return setCard(saved);
     setLoading(true);
     setError(null);
@@ -54,9 +52,23 @@ export function AllergyCard({ userId, restrictions }: { userId: string; restrict
     }
   }
 
+  return { card, loading, error, load };
+}
+
+export function AllergyCard({ userId, restrictions }: { userId: string; restrictions: string[] }) {
+  const { card, loading, error, load } = useAllergyCard(userId, restrictions);
+  const [open, setOpen] = useState(false);
+
   return (
     <>
-      <button type="button" onClick={show} className="card flex items-center gap-3 text-left active:scale-[0.99]">
+      <button
+        type="button"
+        onClick={() => {
+          setOpen(true);
+          void load();
+        }}
+        className="card flex items-center gap-3 text-left active:scale-[0.99]"
+      >
         <span className="grid size-11 shrink-0 place-items-center rounded-[14px] bg-gradient-to-br from-[#ff6b7a] to-[#ff3141] text-white">
           <ShieldAlert size={22} aria-hidden="true" />
         </span>
@@ -82,7 +94,7 @@ export function AllergyCard({ userId, restrictions }: { userId: string; restrict
           {error && (
             <>
               <FormMessage kind="error" text={s.translator.errors[error]} />
-              <button type="button" onClick={show} className="btn-secondary">
+              <button type="button" onClick={load} className="btn-secondary">
                 {s.allergyCard.retry}
               </button>
             </>

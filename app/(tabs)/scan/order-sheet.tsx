@@ -1,15 +1,28 @@
 "use client";
 
-import { Loader2, Minus, Plus, Trash2, X } from "lucide-react";
+import { Loader2, Minus, Plus, ShieldAlert, Trash2, X } from "lucide-react";
 import { useId, useState } from "react";
 import type { ResultItem } from "@/app/api/scan/route";
 import type { TranslateResponse } from "@/app/api/translate/route";
+import { useAllergyCard } from "@/app/(tabs)/ask/allergy-card";
 import { FullScreen } from "@/app/(tabs)/ask/phrase";
+import { Translator } from "@/app/(tabs)/ask/translator";
 import { FormMessage } from "@/components/auth-shell";
 import { DishCategoryChip } from "@/components/dish-category-chip";
 import { PriceTag } from "@/components/price-tag";
+import { VerdictPill } from "@/components/verdict-pill";
 import { priceNumber, type Rate } from "@/lib/currency";
-import { OPTIONS_BY_CATEGORY, ORDER_OPTIONS, orderLine, orderTotal, toggleOption, type CustomRequest, type OrderOption } from "@/lib/order";
+import {
+  CATEGORY_ZH,
+  groupByCategory,
+  OPTIONS_BY_CATEGORY,
+  ORDER_OPTIONS,
+  orderLine,
+  orderTotal,
+  toggleOption,
+  type CustomRequest,
+  type OrderOption,
+} from "@/lib/order";
 import { s } from "@/lib/strings";
 import type { Order } from "./results";
 
@@ -23,16 +36,27 @@ export function OrderSheet({
   items,
   order,
   rate,
+  userId,
+  restrictions,
   onChange,
   onClose,
 }: {
   items: ResultItem[];
   order: Order;
   rate: Rate | null;
+  userId: string;
+  restrictions: string[];
   onChange: (order: Order) => void;
   onClose: () => void;
 }) {
   const [card, setCard] = useState(false);
+  // The user's restrictions in Cantonese (the allergy card), shown on the order card.
+  const allergy = useAllergyCard(userId, restrictions);
+
+  function showCard() {
+    setCard(true);
+    void allergy.load();
+  }
   const entries = items.filter((item) => order.has(item.position)).map((item) => ({ item, ...order.get(item.position)! }));
   const total = orderTotal(entries.map(({ item, qty }) => ({ qty, price: priceNumber(item.price) })));
 
@@ -55,37 +79,47 @@ export function OrderSheet({
             </p>
             <p className="text-sm text-white/75">{s.order.greetingEn}</p>
           </div>
-          <ul className="divide-y divide-line">
-            {entries.map(({ item, qty, options, custom }) => {
-              const line = orderLine({ ...item, qty, options, custom });
-              return (
-                <li key={item.position} className="flex gap-4 px-5 py-4">
-                  <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-brand text-2xl font-extrabold text-white tabular-nums">
-                    {line.qty}×
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    {line.number && <p className="text-sm font-bold text-brand-dark">{line.number}號 · No. {line.number}</p>}
-                    <p lang="zh-HK" className="text-[26px] leading-tight font-extrabold text-ink">
-                      {line.zh}
-                    </p>
-                    <p className="text-sm text-muted">{line.en}</p>
-                    {line.requests.length > 0 && (
-                      <ul className="mt-2 flex flex-wrap gap-1.5">
-                        {line.requests.map((r) => (
-                          <li key={r.zh} className="rounded-xl bg-check/15 px-2.5 py-1">
-                            <span lang="zh-HK" className="block text-lg leading-tight font-extrabold text-[#8a4700]">
-                              {r.zh}
-                            </span>
-                            <span className="block text-xs text-[#b35c00]">{r.en}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+          {groupByCategory(entries.map((entry) => ({ ...entry, category: entry.item.category ?? null }))).map((group) => (
+            <section key={group.category} className="border-t border-line first:border-t-0">
+              <h3 className="flex items-center gap-2 bg-page px-5 py-2">
+                {group.category !== "unknown" && <DishCategoryChip category={group.category} />}
+                <span lang="zh-HK" className="text-base font-extrabold text-ink">
+                  {CATEGORY_ZH[group.category]}
+                </span>
+              </h3>
+              <ul className="divide-y divide-line">
+                {group.entries.map(({ item, qty, options, custom }) => {
+                  const line = orderLine({ ...item, qty, options, custom });
+                  return (
+                    <li key={item.position} className="flex gap-4 px-5 py-4">
+                      <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-brand text-2xl font-extrabold text-white tabular-nums">
+                        {line.qty}×
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        {line.number && <p className="text-sm font-bold text-brand-dark">{line.number}號 · No. {line.number}</p>}
+                        <p lang="zh-HK" className="text-[26px] leading-tight font-extrabold text-ink">
+                          {line.zh}
+                        </p>
+                        <p className="text-sm text-muted">{line.en}</p>
+                        {line.requests.length > 0 && (
+                          <ul className="mt-2 flex flex-wrap gap-1.5">
+                            {line.requests.map((r) => (
+                              <li key={r.zh} className="rounded-xl bg-check/15 px-2.5 py-1">
+                                <span lang="zh-HK" className="block text-lg leading-tight font-extrabold text-[#8a4700]">
+                                  {r.zh}
+                                </span>
+                                <span className="block text-xs text-[#b35c00]">{r.en}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ))}
           {total !== null && (
             <div className="flex items-center justify-between gap-3 border-t-2 border-ink px-5 py-3">
               <span className="font-bold">
@@ -94,7 +128,39 @@ export function OrderSheet({
               <PriceTag hkd={total} rate={rate} size="md" />
             </div>
           )}
+          {/* What the user can't eat, so the kitchen knows for every dish. */}
+          <div className="border-t-2 border-ink bg-avoid/10 px-5 py-4">
+            <p className="flex items-center gap-1.5 text-sm font-bold text-[#c4142a]">
+              <ShieldAlert size={18} aria-hidden="true" />
+              <span lang="zh-HK">飲食限制</span> · {s.order.restrictions}
+            </p>
+            {allergy.card && (
+              <>
+                <p lang="zh-HK" className="mt-1.5 text-xl leading-snug font-extrabold text-ink">
+                  {allergy.card.text_zh}
+                </p>
+                <p className="mt-1 text-sm text-muted">{allergy.card.text_en}</p>
+              </>
+            )}
+            {allergy.loading && (
+              <p className="mt-2 flex items-center gap-2 text-sm font-semibold text-brand">
+                <Loader2 size={16} className="animate-spin" /> {s.allergyCard.loading}
+              </p>
+            )}
+            {allergy.error && (
+              <button type="button" onClick={allergy.load} className="mt-2 text-sm font-semibold text-brand">
+                {s.allergyCard.retry}
+              </button>
+            )}
+          </div>
         </div>
+        {allergy.card && <p className="-mt-2 px-1 text-xs text-muted">{s.allergyCard.note}</p>}
+
+        <section className="flex flex-col gap-2">
+          <h2 className="text-[17px] font-bold">{s.order.talkTitle}</h2>
+          <p className="text-sm text-muted">{s.order.talkHint}</p>
+          <Translator />
+        </section>
       </FullScreen>
     );
   }
@@ -109,6 +175,7 @@ export function OrderSheet({
               <div className="min-w-0 flex-1">
                 <div className="mb-1 flex flex-wrap items-center gap-1.5">
                   {item.category && <DishCategoryChip category={item.category} />}
+                  {item.verdict !== "ok" && <VerdictPill verdict={item.verdict} size="sm" />}
                   {item.menu_number && <span className="rounded-full bg-brand-light px-2 py-0.5 text-xs font-bold text-brand-dark">{s.results.menuNumber(item.menu_number)}</span>}
                 </div>
                 <p className="font-bold leading-snug">{item.name_en}</p>
@@ -142,7 +209,7 @@ export function OrderSheet({
           {s.order.total} <PriceTag hkd={total} rate={rate} />
         </p>
       )}
-      <button type="button" onClick={() => setCard(true)} className="btn-primary">
+      <button type="button" onClick={showCard} className="btn-primary">
         {s.order.show}
       </button>
       <button

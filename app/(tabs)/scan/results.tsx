@@ -37,12 +37,16 @@ export function Results({
   phrases,
   isTeam,
   hasCurrency,
+  userId,
+  restrictions,
   onScanAgain,
 }: {
   data: ResultData;
   phrases: StaffPhrase[];
   isTeam: boolean;
   hasCurrency: boolean;
+  userId: string;
+  restrictions: string[];
   onScanAgain: () => void;
 }) {
   const [filter, setFilter] = useState<Filter>("all");
@@ -157,6 +161,8 @@ export function Results({
         <OrderSheet
           items={data.items}
           rate={data.rate}
+          userId={userId}
+          restrictions={restrictions}
           order={order}
           onChange={setOrder}
           onClose={() => setOrderOpen(false)}

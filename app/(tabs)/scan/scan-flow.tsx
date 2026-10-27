@@ -187,7 +187,17 @@ export function ScanFlow({
   }
 
   if (stage.name === "results")
-    return <Results data={stage.data} phrases={phrases} isTeam={isTeam} hasCurrency={hasCurrency} onScanAgain={reset} />;
+    return (
+      <Results
+        data={stage.data}
+        phrases={phrases}
+        isTeam={isTeam}
+        hasCurrency={hasCurrency}
+        userId={userId}
+        restrictions={restrictions}
+        onScanAgain={reset}
+      />
+    );
 
   return (
     <main className="flex flex-col gap-4 px-4 pt-[calc(1.5rem+env(safe-area-inset-top))]">

@@ -1,7 +1,7 @@
 // Unit tests for the order helper. Run with `npm test`.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { OPTIONS_BY_CATEGORY, orderLine, orderTotal, toggleOption } from "./order.ts";
+import { groupByCategory, OPTIONS_BY_CATEGORY, orderLine, orderTotal, toggleOption } from "./order.ts";
 
 test("number, dish, quantity, requests and own requests", () => {
   const line = orderLine({
@@ -35,4 +35,21 @@ test("requests fit the kind of dish", () => {
 test("total only when every dish has a price", () => {
   assert.equal(orderTotal([{ qty: 2, price: 15 }, { qty: 1, price: 28 }]), 58);
   assert.equal(orderTotal([{ qty: 1, price: 15 }, { qty: 1, price: null }]), null);
+});
+
+test("order card groups dishes by kind, mains before drinks", () => {
+  const groups = groupByCategory([
+    { name: "milk tea", category: "drink" as const },
+    { name: "char siu rice", category: "main" as const },
+    { name: "egg tart", category: null },
+    { name: "lemon tea", category: "drink" as const },
+  ]);
+  assert.deepEqual(
+    groups.map((g) => [g.category, g.entries.map((e) => e.name)]),
+    [
+      ["main", ["char siu rice"]],
+      ["drink", ["milk tea", "lemon tea"]],
+      ["unknown", ["egg tart"]],
+    ],
+  );
 });
