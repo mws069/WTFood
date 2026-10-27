@@ -7,6 +7,10 @@ import { CATEGORIES, INGREDIENT_KEYS } from "@/lib/ingredients";
 export const KINDS = ["menu", "kiosk", "label"] as const;
 export type Kind = (typeof KINDS)[number];
 
+// What kind of dish an item is (shown as a coloured chip; decides the order requests).
+export const DISH_CATEGORIES = ["drink", "snack", "main", "soup", "side", "dessert", "set", "packaged", "other"] as const;
+export type DishCategory = (typeof DISH_CATEGORIES)[number];
+
 // "other" lets the model report an ingredient we have no key for. It then
 // names it and says which categories it brings in (e.g. whey powder → milk);
 // the rule engine evaluates those and marks the reasons "not verified".
@@ -16,6 +20,7 @@ export const modelItemSchema = z.object({
   original_text: z.string().describe("The item's text exactly as written on the photo (Chinese)"),
   menu_number: z.string().nullable().describe("The number or code printed next to the item on the menu (e.g. 12, A3), or null"),
   price: z.string().nullable().describe("The price as printed next to the item (e.g. $12, 28, HK$35.5), or null"),
+  category: z.enum(DISH_CATEGORIES).nullable().describe("What kind of dish it is"),
   name_en: z.string().describe("Natural English name of the dish, not a word-by-word translation"),
   jyutping: z.string().nullable().describe("Cantonese Jyutping with tone numbers, or null if unsure"),
   description_en: z.string().nullable().describe("One short sentence: what the dish is and how it is made or served"),

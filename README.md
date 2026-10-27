@@ -88,14 +88,15 @@ All tables from the brief exist, with Row Level Security on every table:
 
 ### Results
 
-The answer is **streamed**: `POST /api/scan` returns JSON lines (`application/x-ndjson`), one `item` event per dish as soon as the model has finished it, then `done` (or `error`). Errors before the scan starts (login, limit, photo) are normal JSON with a status code.
+A scan can have **up to 4 photos** of one long menu (picked together or added one by one); they are shrunk together below 4 MB, sent in one request and read as one menu (each photo counts as one scan for the daily limit). The answer is **streamed**: `POST /api/scan` returns JSON lines (`application/x-ndjson`), one `item` event per dish as soon as the model has finished it, then `done` (or `error`). Errors before the scan starts (login, limit, photo) are normal JSON with a status code.
 
 Items are numbered in menu order; a number printed on the menu is shown next to the name ("No. 12"). Each card shows the verdict with reasons; "Details" lists the ingredients and (A3) the dish entry. **Ask staff** opens a full-screen card for that dish: the question for the user's restrictions (table `staff_phrases`; unreviewed phrases are marked), questions written for this dish on request, and the translator. **Report mistake** stores a short report in `feedback` (only the team can read it).
 
 More on the results screen:
 - **Prices:** shown in HK$ and, if the user picked a currency (Profile → Currency, about 30 currencies), approximately in that currency. Rates: European Central Bank via frankfurter.dev (free, no key), loaded once a day; the date of the rate is shown.
 - **Eating with friends:** before scanning, extra restrictions can be picked ("Vegan", "Halal" …). They are only used for that scan; each card shows the verdict per friend restriction.
-- **Order helper:** "Add to order" on each dish, quantity and requests (走蔥 no spring onion, 少油 less oil, 凍 cold …), then a big card in Chinese for the staff. Nothing is ordered or paid in the app.
+- **Categories:** every dish gets a kind (drink, snack & dim sum, main, soup, side, dessert, set meal …) shown as a coloured chip with an icon.
+- **Order helper:** "Add to order" on each dish, quantity and requests that fit the kind of dish (`lib/order.ts`: drinks 走冰/少甜/熱/凍, mains 走蔥/走辣/少油 …), plus own requests that the translator turns into the kitchen's short form (`mode: request`, e.g. "no bean sprouts" → 走芽菜; allergies are kept). Then a big card in Chinese with quantities, requests and the total. Nothing is ordered or paid in the app.
 - **Last result** stays on the phone (localStorage) and can be reopened from the scan screen. Removed on logout and account deletion.
 - **Lexicon link** on dishes that are verified in the database.
 

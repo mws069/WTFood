@@ -7,14 +7,16 @@ import { hkdRate, type Rate } from "@/lib/currency";
 import { ingredientByKey, type Category } from "@/lib/ingredients";
 import { onboardingStep, getCurrentProfile } from "@/lib/profile";
 import { RESTRICTION_KEYS } from "@/lib/restrictions";
-import { KINDS, type Approach, type KbDish, type Kind, type ScanItem } from "@/lib/scan-schema";
+import { KINDS, type Approach, type DishCategory, type KbDish, type Kind, type ScanItem } from "@/lib/scan-schema";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verdictFor, type Verdict } from "@/lib/verdict";
 
 // Vision calls can take a while.
 export const maxDuration = 120;
 
-const MAX_BYTES = 5 * 1024 * 1024;
+// Up to 4 photos of one menu; together they must stay below Vercel's upload limit.
+const MAX_PHOTOS = 4;
+const MAX_BYTES = 4.4 * 1024 * 1024;
 const DEFAULT_APPROACH: Approach = "A3";
 const APPROACHES: Approach[] = ["A1", "A2", "A3"];
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -23,6 +25,7 @@ export type ResultItem = {
   position: number;
   menu_number: string | null;
   price: string | null;
+  category: DishCategory | null;
   original_text: string;
   name_en: string;
   jyutping: string | null;
@@ -72,6 +75,7 @@ function toResultItem(item: ScanItem, position: number, kind: Kind, restrictions
     position,
     menu_number: item.menu_number,
     price: item.price,
+    category: item.category,
     original_text: item.original_text,
     name_en: item.name_en,
     jyutping: item.jyutping,
@@ -108,12 +112,13 @@ export async function POST(request: NextRequest) {
   if (onboardingStep(profile)) return fail("onboarding", 403);
 
   const form = await request.formData().catch(() => null);
-  const image = form?.get("image");
+  const images = form?.getAll("image") ?? [];
   const kindValue = form?.get("kind");
   const kind = KINDS.includes(kindValue as Kind) ? (kindValue as Kind) : null;
-  if (!(image instanceof Blob) || !IMAGE_TYPES.includes(image.type) || image.size === 0 || image.size > MAX_BYTES) {
-    return fail("invalid_image", 400);
-  }
+  const valid = images.every((image) => image instanceof Blob && IMAGE_TYPES.includes(image.type) && image.size > 0);
+  const total = images.reduce((sum, image) => sum + (image instanceof Blob ? image.size : 0), 0);
+  if (images.length === 0 || images.length > MAX_PHOTOS || !valid || total > MAX_BYTES) return fail("invalid_image", 400);
+  const photos = images as Blob[];
   // Users get the default approach; only the team may switch (for testing).
   const requested = form?.get("approach");
   const approach: Approach = profile.role === "team" && APPROACHES.includes(requested as Approach) ? (requested as Approach) : DEFAULT_APPROACH;
@@ -122,12 +127,16 @@ export async function POST(request: NextRequest) {
     .split(",")
     .filter((key) => RESTRICTION_KEYS.includes(key) && !profile.restrictions.includes(key));
 
-  // Daily limit (configurable), counted before the model call.
+  // Daily limit (configurable), counted before the model call: one scan per photo.
   const limit = Number(process.env.SCAN_DAILY_LIMIT) || 30;
   const admin = createAdminClient();
-  const { data: used, error: quotaError } = await admin.rpc("consume_scan", { p_user: profile.id, p_limit: limit });
-  if (quotaError) return fail("failed", 500);
-  if (used === -1) return fail("limit", 429);
+  let used = 0;
+  for (let i = 0; i < photos.length; i++) {
+    const { data, error: quotaError } = await admin.rpc("consume_scan", { p_user: profile.id, p_limit: limit });
+    if (quotaError) return fail("failed", 500);
+    if (data === -1) return fail("limit", 429);
+    used = data;
+  }
 
   // Started here, inside the request (fetch caching needs it), awaited in the stream.
   const ratePromise = profile.currency ? hkdRate(profile.currency) : Promise.resolve(null);
@@ -143,13 +152,12 @@ export async function POST(request: NextRequest) {
     const onItem: OnItem = (item, itemKind) => send({ type: "item", item: toResultItem(item, ++position, itemKind, profile.restrictions, friends) });
 
     try {
-      const base64 = approach === "A1" ? "" : Buffer.from(await image.arrayBuffer()).toString("base64");
-      const [result, rate] = await Promise.all([
+      const encoded =
         approach === "A1"
-          ? runA1(image, kind)
-          : approach === "A3"
-            ? runA3(base64, image.type, kind, onItem)
-            : runA2(base64, image.type, kind, onItem),
+          ? []
+          : await Promise.all(photos.map(async (photo) => ({ base64: Buffer.from(await photo.arrayBuffer()).toString("base64"), mediaType: photo.type })));
+      const [result, rate] = await Promise.all([
+        approach === "A1" ? runA1(photos, kind) : approach === "A3" ? runA3(encoded, kind, onItem) : runA2(encoded, kind, onItem),
         ratePromise,
       ]);
       // A1 has no stream: all its items come at the end.
